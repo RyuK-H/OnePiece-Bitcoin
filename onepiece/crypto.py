@@ -66,6 +66,25 @@ def privkey_to_pubkey_compressed(k: int) -> bytes:
     return bytes([prefix]) + x.to_bytes(32, "big")
 
 
+def decompress_pubkey(pub) -> tuple[int, int]:
+    """Recover the (x, y) point from a 33-byte compressed public key.
+
+    Accepts a hex string or bytes. secp256k1 has p ≡ 3 (mod 4), so the square
+    root is a single modular exponentiation.
+    """
+    b = bytes.fromhex(pub) if isinstance(pub, str) else bytes(pub)
+    if len(b) != 33 or b[0] not in (0x02, 0x03):
+        raise ValueError("expected a 33-byte compressed public key (02/03 prefix)")
+    x = int.from_bytes(b[1:], "big")
+    y2 = (pow(x, 3, P) + B) % P
+    y = pow(y2, (P + 1) // 4, P)
+    if (y * y - y2) % P != 0:
+        raise ValueError("public key x is not on the curve")
+    if (y & 1) != (b[0] & 1):
+        y = P - y
+    return (x, y)
+
+
 # --- hashes ---
 
 def sha256(b: bytes) -> bytes:
@@ -231,6 +250,8 @@ if __name__ == "__main__":
     # round-trip a known unsolved address (#71) through decode/encode
     a71 = "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU"
     assert hash160_to_address(address_to_hash160(a71)) == a71
+    # decompressing puzzle #1's public key must give the generator point G
+    assert decompress_pubkey(pk1) == (GX, GY)
     print("crypto self-test OK")
     print("  puzzle #1 pubkey:", pk1)
     print("  puzzle #1 address:", addr1)
