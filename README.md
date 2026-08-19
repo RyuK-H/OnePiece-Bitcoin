@@ -43,8 +43,8 @@ None of this is a bug. It is the project. See [`docs/PUZZLE.md`](docs/PUZZLE.md)
 Full design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 <p align="center">
-  <img src="docs/assets/dashboard.jpg" alt="The local dashboard: status, how far you've searched, and the keyspace map" width="840">
-  <br><sub>The read-only dashboard at <code>http://localhost:7100</code>. The keyspace map stays almost entirely dark — that darkness is the point.</sub>
+  <img src="docs/assets/dashboard.gif" alt="The local dashboard, live: status, how far you've searched, and the keyspace map scattering across the search space" width="840">
+  <br><sub>The read-only dashboard at <code>http://localhost:7100</code>, live. Each second the lit cells jump to fresh random points — and the map still stays almost entirely dark. That darkness is the point.</sub>
 </p>
 
 ## Quick start
@@ -186,3 +186,7 @@ The one rule that matters: this hunt is won by burning the fewest resources, not
 ---
 
 <p align="center"><sub>The treasure exists. You find it, or you don't. That's OnePiece Bitcoin.</sub></p>
+
+---
+
+<sub>This project is an unofficial, fan-made homage and is not affiliated with, endorsed by, or associated with Shueisha, Toei Animation, or Eiichiro Oda. "One Piece" and related names are trademarks of their respective owners. All artwork in this repository is original. See [`NOTICE`](NOTICE).</sub>
