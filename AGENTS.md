@@ -26,35 +26,39 @@ Read, in this order: `README.md`, then `docs/PUZZLE.md`, then `docs/ARCHITECTURE
 
 ## 2. Check prerequisites
 
-- A Rust toolchain (`cargo`) for the default CPU engine. If missing, offer to install it via rustup.
-- No GPU is required. If the user has one and wants it, the `--gpu` flag is optional. Do not make it a prerequisite.
+- Python 3.9 or newer (`python3 --version`). That is the only requirement: no compiler, no third-party packages, no API keys.
+- If Python is missing, help the user install it, then continue.
 - Nothing else should need to be installed. If a step wants network access beyond the hourly balance check, stop, because that violates the design.
 
-## 3. Build
+## 3. Get it running
 
 ```bash
 git clone https://github.com/RyuK-H/OnePiece-Bitcoin.git
 cd OnePiece-Bitcoin
-cargo build --release
+python3 -m onepiece list      # sanity check: prints the unsolved puzzles
 ```
 
-> If the engine is not implemented yet in this checkout, say so plainly. Do not fabricate results or pretend a search ran. The design docs may be complete while the engine is still being built.
+> There is nothing to compile. If `python3 -m onepiece list` prints the table, the engine is ready. Never fabricate search results or pretend a hunt ran.
 
 ## 4. Collect three inputs from the user
 
 Ask for these, and never invent them:
 
-1. **Which puzzle** (e.g. `71`). Confirm against `data/puzzles.json`. Address-only puzzles use brute force; public-key-exposed ones use Kangaroo. Do not assume by range — read each entry's `type` field. As of the last verification only five unsolved targets are public-key exposed: 140, 145, 150, 155, 160.
+1. **Which puzzle** (e.g. `71`). Confirm against `data/puzzles.json`. Address-only puzzles use brute force; public-key-exposed ones use Kangaroo. Do not assume by range; read each entry's `type` field. As of the last verification only five unsolved targets are public-key exposed: 140, 145, 150, 155, 160.
 2. **Intensity** `1` to `10`, how much spare CPU to use. Default to something modest like `4`. This is leftover power, not a max-out.
 3. **One meaningful sentence.** This becomes `SHA-256(sentence)`, their personal seed, which decides where in the keyspace they start. Encourage something they'll remember (a One Piece line, a motto). A different sentence means a different search region.
 
-## 5. Launch
+## 5. Launch and show them where to watch
 
 ```bash
-./onepiece hunt --puzzle <N> --intensity <1-10> --sentence "<their sentence>"
+python3 -m onepiece hunt --puzzle <N> --intensity <1-10> --sentence "<their sentence>"
 ```
 
-Then tell them to open the dashboard at `http://localhost:7100`. Explain that the grid will look almost entirely dark, and that emptiness is the point, not a bug.
+The status location is two local places:
+- the live dashboard at `http://localhost:7100`
+- the saved state file, shown any time by `python3 -m onepiece status`
+
+Explain that the dashboard grid will look almost entirely dark, and that emptiness is the point, not a bug. The hunt keeps running until it finds the key, the user stops it (Ctrl-C), or the balance drops to zero. The same sentence resumes a stopped hunt exactly where it left off.
 
 ## 6. Resume, don't restart
 
@@ -62,10 +66,11 @@ State lives in a tiny local file (seed plus counter). To continue a previous hun
 
 ## 7. If the key is found (handle with extreme care)
 
-The engine reports a match locally and offline. If that ever happens:
+The program stops on its own and writes the private key to a local file (mode 600) under `~/.onepiece/found/`. If that ever happens:
 
-- **Do not auto-broadcast any transaction.** Broadcasting exposes the key to mempool front-running bots that can steal the prize. This is a human decision requiring careful, possibly private-mempool, handling.
-- **Do not transmit, log to a remote service, paste into a chat, or commit the private key anywhere.** Keep it local. Hand control to the human and stop.
+- **Tell the human to move the funds to their own wallet FIRST, immediately.** Import the key into a wallet they control and sweep the balance. Broadcasting late exposes it to mempool front-running bots that can steal the prize.
+- **Do not auto-broadcast any transaction yourself.** This is a human decision requiring careful, possibly private-mempool, handling.
+- **Do not transmit, log to a remote service, paste into a chat, or commit the private key anywhere.** It stays in the local `found/` file. Point the human to that file and stop.
 - Treat the found key as the user's sole property and secret.
 
 ## 8. Hard guardrails

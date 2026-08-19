@@ -43,26 +43,24 @@ Full design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Quick start
 
-> **Status:** the concept and design docs are complete. The search engine is being built next. The commands below describe the intended interface.
+> **Requirements:** Python 3.9+ and nothing else. No compiler, no dependencies, no API keys.
 
 ```bash
 git clone https://github.com/RyuK-H/OnePiece-Bitcoin.git
 cd OnePiece-Bitcoin
 
-# build the CPU engine (no GPU required, runs anywhere)
-cargo build --release
+# friendly wizard: pick a puzzle, choose intensity, write your sentence
+python3 -m onepiece start
 
-# start the hunt
-./onepiece hunt \
-  --puzzle 71 \
-  --intensity 4 \
-  --sentence "I will become the king of the pirates"
+# or run it directly
+python3 -m onepiece hunt --puzzle 71 --intensity 4 --sentence "I will become the king of the pirates"
 
-# then open the dashboard
-open http://localhost:7100
+# see the unsolved list, or where a hunt stands
+python3 -m onepiece list
+python3 -m onepiece status
 ```
 
-`--intensity` (1 to 10) controls how many threads and how much of your spare CPU the hunt uses. Nothing else phones home.
+While a hunt runs, a read-only dashboard is live at **http://localhost:7100**, and progress is saved to a small local state file (shown by `onepiece status`). `--intensity` (1 to 10) sets how many worker processes and how much of your spare CPU the hunt uses. Nothing else phones home.
 
 ## The unsolved fleet
 

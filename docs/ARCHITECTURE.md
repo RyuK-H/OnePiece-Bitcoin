@@ -19,12 +19,12 @@ For a single searcher against a uniformly-placed target, sequential and random s
 
 ```
 sentence  ──SHA-256──▶  seed (256-bit)  ──▶  PRNG(seed, counter)  ──▶  stream of random start points
-"I will be the pirate king"    3f9a...e21        ChaCha-family              points inside [2^(N-1), 2^N)
+"I will be the pirate king"    3f9a...e21     counter-mode SHA-256          points inside [2^(N-1), 2^N)
 ```
 
 1. The user writes one meaningful sentence (a One Piece line, a personal motto, anything).
 2. `seed = SHA-256(sentence)`, a deterministic 256-bit value.
-3. That seed keys a counter-based PRNG (e.g. ChaCha8/12). Mapping the i-th output into the puzzle range gives the i-th random start point.
+3. That seed keys a counter-based PRNG (counter-mode SHA-256, so it stays in the standard library). Mapping the i-th output into the puzzle range gives the i-th random start point.
 4. From each start point, scan only a short stride (a few million contiguous keys). Pure per-key randomness throws away the incremental elliptic-curve point-addition speedup and is slow. "Random start plus short sequential stride" captures both dispersion and speed. Stride length is configurable, small by default.
 
 Same sentence means same seed and same stream, so it is fully reproducible and resumable. A different person means a different sentence and a different ocean. Collisions between people are astronomically rare and harmless anyway (it's a lottery).
@@ -77,5 +77,6 @@ Resume is triggered by the sentence, not by a separate flag. Typing the same sen
 
 ## Engine
 
-- **Default: Rust CPU core.** `clone`, `cargo build`, `run`. No GPU required, green checkmark on any laptop. Aligned with the "leftover home PC" concept.
-- **Optional: GPU auto-detect.** If present, `--gpu` runs harder. If absent, it quietly falls back to CPU. Since speed does not change the odds, GPU is purely for the feeling of running harder.
+- **Pure-Python standard library.** `git clone`, then `python3 -m onepiece …`. Nothing to compile, no dependencies, no API keys. It runs anywhere `python3` runs, which is the strongest form of the "leftover home PC" idea. Correctness is guarded by self-tests (`onepiece/crypto.py` reproduces puzzle #1's known address; `tests/test_found.py` recovers a planted key end to end).
+- **Intensity = worker processes.** The 1-10 dial maps to how many CPU cores the hunt uses (leaving one free for you), via `multiprocessing`. Each worker searches its own seeded region so they never overlap.
+- **Speed is deliberately not the point.** A native core (Rust, or GPU) would not change the odds, which are effectively zero. A faster path may be added later as an optional extra, never a requirement.
