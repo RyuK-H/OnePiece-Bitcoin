@@ -46,7 +46,19 @@ def cmd_list(args):
 
 def _run(puzzle_n: int, sentence: str, intensity: int, port: int,
          max_seconds, no_dashboard: bool, balance_interval: int):
-    p = get_puzzle(puzzle_n)
+    try:
+        p = get_puzzle(puzzle_n)
+    except KeyError:
+        print(f"Puzzle #{puzzle_n} is not in the unsolved list (it may be solved, or invalid).")
+        print("Run  python3 -m onepiece list  to see the puzzles you can hunt.")
+        return 1
+    if not sentence or not sentence.strip():
+        print("A meaningful sentence is required. It seeds your search region.")
+        return 1
+    if not (1 <= intensity <= 10):
+        clamped = max(1, min(10, intensity))
+        print(f"Intensity {intensity} is out of range; using {clamped} (valid range is 1-10).")
+        intensity = clamped
     method = "Kangaroo" if p.type == "pubkey-exposed" else "brute force"
     seed_hex = seedmod.seed_hash_hex(seedmod.seed_from_sentence(sentence))
     path = statemod.state_path(p.n, seed_hex)
