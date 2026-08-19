@@ -59,6 +59,27 @@ def years_to_exhaust(keyspace_size: int, rate_per_sec: float) -> float:
     return keyspace_size / rate_per_sec / (3600 * 24 * 365)
 
 
+def resume_counters(prev: dict | None, seed_hex: str, workers: int):
+    """Decide each worker's start counter when (re)launching a brute-force hunt.
+
+    Worker w searches the stream derived from (seed, w) alone — the total worker
+    count never enters derive_worker_seed — so a worker's progress is valid no
+    matter how many workers run alongside it. Therefore changing the worker
+    count must NOT discard progress: resume every worker we have a counter for,
+    start any newly added workers at 0, and preserve counters for workers beyond
+    this run's count so that raising it again later resumes them too.
+
+    Returns (start_counters, preserved_extra, keys_before, started_at_or_None).
+    """
+    if not prev or prev.get("seed_hash") != seed_hex:
+        return [0] * workers, [], 0, None
+    prev_counters = [int(c) for c in prev.get("worker_counters", [])]
+    start_counters = [prev_counters[w] if w < len(prev_counters) else 0
+                      for w in range(workers)]
+    preserved_extra = prev_counters[workers:]
+    return start_counters, preserved_extra, int(prev.get("keys_tried", 0)), prev.get("started_at")
+
+
 def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
              balance_interval: int = 3600, max_seconds: float | None = None,
              on_status=None, check_balance: bool = True) -> dict:
@@ -84,6 +105,7 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
     counters = None
     keys_before = 0
     started_at = statemod.now_iso()
+    preserved_extra: list[int] = []
     procs = []
 
     if is_kangaroo:
@@ -102,12 +124,11 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
     else:
         target_h160 = crypto.address_to_hash160(puzzle.address)
         prev = statemod.load(path)
-        if prev and prev.get("seed_hash") == seed_hex and len(prev.get("worker_counters", [])) == workers:
-            start_counters = list(prev["worker_counters"])
-            keys_before = int(prev.get("keys_tried", 0))
-            started_at = prev.get("started_at", started_at)
-        else:
-            start_counters = [0] * workers
+        start_counters, preserved_extra, prev_keys, prev_started = \
+            resume_counters(prev, seed_hex, workers)
+        keys_before = prev_keys
+        if prev_started:
+            started_at = prev_started
         counters = ctx.Array("Q", start_counters)
         for w in range(workers):
             p = ctx.Process(target=_brute_worker, args=(
@@ -116,7 +137,7 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
             p.daemon = True
             p.start()
             procs.append(p)
-        worker_counters = list(start_counters)
+        worker_counters = list(start_counters) + preserved_extra
 
     st = {
         "puzzle": puzzle.n,
@@ -158,7 +179,7 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
             elapsed = now - t0
             st["keys_tried"] = keys_before + keys_tried.value
             if counters is not None:
-                st["worker_counters"] = list(counters)
+                st["worker_counters"] = list(counters) + preserved_extra
             st["last_at"] = statemod.now_iso()
             rate = (st["keys_tried"] - keys_before) / elapsed if elapsed > 0 else 0.0
             st["rate_per_sec"] = round(rate, 1)
