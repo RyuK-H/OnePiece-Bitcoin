@@ -11,8 +11,10 @@ Kangaroo hunt restarts its herd on resume; its walk is not checkpointed.)
 """
 
 from __future__ import annotations
+import math
 import multiprocessing as mp
 import os
+import signal
 import time
 
 from . import crypto, kangaroo, state as statemod
@@ -26,6 +28,7 @@ KANGAROO_BATCH = 4096  # group operations per step, per kangaroo worker
 
 def _brute_worker(w, seed, target_h160, lo, size, stride,
                   start_counter, keys_tried, counters, found_evt, result_q):
+    signal.signal(signal.SIGINT, signal.SIG_IGN)  # parent handles Ctrl-C via found_evt
     w_seed = seedmod.derive_worker_seed(seed, w)
     counter = start_counter
     while not found_evt.is_set():
@@ -41,6 +44,7 @@ def _brute_worker(w, seed, target_h160, lo, size, stride,
 
 
 def _kangaroo_worker(w, Qx, Qy, a, b, seed, keys_tried, found_evt, result_q):
+    signal.signal(signal.SIGINT, signal.SIG_IGN)  # parent handles Ctrl-C via found_evt
     w_seed = seedmod.derive_worker_seed(seed, w)
     solver = kangaroo.KangarooSolver((Qx, Qy), a, b, w_seed)
     while not found_evt.is_set():
@@ -112,8 +116,8 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
         Q = crypto.decompress_pubkey(puzzle.public_key)
         # sanity: the public key must hash to the puzzle's address
         pub = bytes([0x02 if Q[1] % 2 == 0 else 0x03]) + Q[0].to_bytes(32, "big")
-        assert crypto.hash160_to_address(crypto.hash160(pub)) == puzzle.address, \
-            "public key does not match the puzzle address"
+        if crypto.hash160_to_address(crypto.hash160(pub)) != puzzle.address:
+            raise RuntimeError("public key does not match the puzzle address")
         for w in range(workers):
             p = ctx.Process(target=_kangaroo_worker, args=(
                 w, Q[0], Q[1], lo, puzzle.keyspace_hi, seed, keys_tried, found_evt, result_q))
@@ -183,7 +187,13 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
             st["last_at"] = statemod.now_iso()
             rate = (st["keys_tried"] - keys_before) / elapsed if elapsed > 0 else 0.0
             st["rate_per_sec"] = round(rate, 1)
-            st["years_to_exhaust"] = years_to_exhaust(size, rate)
+            yx = years_to_exhaust(size, rate)
+            # Omit when infinite (rate 0 at startup): keeps /api/state valid JSON
+            # (no Infinity token); the dashboard reads a missing field as ∞.
+            if math.isfinite(yx):
+                st["years_to_exhaust"] = yx
+            else:
+                st.pop("years_to_exhaust", None)
 
             if now - last_balance_t >= max(balance_interval, 1):
                 last_balance_t = now
@@ -217,7 +227,8 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
             p.terminate()
 
     if found_key is not None:
-        assert crypto.privkey_to_address(found_key) == puzzle.address
+        if crypto.privkey_to_address(found_key) != puzzle.address:
+            raise RuntimeError("internal error: found key does not match the target address")
         found_path = statemod.write_found(puzzle.n, found_key, puzzle.address)
         st["status"] = "found"
         st["found"] = {
