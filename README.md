@@ -186,3 +186,7 @@ The one rule that matters: this hunt is won by burning the fewest resources, not
 ---
 
 <p align="center"><sub>The treasure exists. You find it, or you don't. That's OnePiece Bitcoin.</sub></p>
+
+---
+
+<sub>This project is an unofficial, fan-made homage and is not affiliated with, endorsed by, or associated with Shueisha, Toei Animation, or Eiichiro Oda. "One Piece" and related names are trademarks of their respective owners. All artwork in this repository is original. See [`NOTICE`](NOTICE).</sub>

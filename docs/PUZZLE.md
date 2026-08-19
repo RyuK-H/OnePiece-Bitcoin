@@ -43,3 +43,7 @@ This project's ethic is to never lie about the odds, so it hides no risk.
 ## So why do it
 
 For the same reason a solo miner still dreams every ten minutes against million-year odds. This is not about the money. It is the emotional reward of hope and challenge. OnePiece Bitcoin makes that hope local, honest, and visible. Just as Gol D. declared the One Piece is real before anyone had found it, the treasure exists. All that's left is whether you find it.
+
+---
+
+<sub>This project is an unofficial, fan-made homage and is not affiliated with, endorsed by, or associated with Shueisha, Toei Animation, or Eiichiro Oda. "One Piece" and related names are trademarks of their respective owners. All artwork in this repository is original.</sub>
