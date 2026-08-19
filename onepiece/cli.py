@@ -189,7 +189,12 @@ def cmd_dashboard(args):
         return 0
     st = hunts[-1]
     path = statemod.state_path(st["puzzle"], st["seed_hash"])
-    serve_in_thread(path, args.port)
+    try:
+        serve_in_thread(path, args.port)
+    except OSError as e:
+        print(f"Could not start the dashboard on port {args.port}: {e}")
+        print("Is a hunt already serving it? Try a different --port.")
+        return 1
     print(f"Dashboard for puzzle #{st['puzzle']}: http://localhost:{args.port}")
     print("Ctrl-C to stop the dashboard.")
     try:

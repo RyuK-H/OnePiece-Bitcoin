@@ -86,7 +86,9 @@ def write_found(puzzle_n: int, private_key_int: int, address: str) -> str:
         "   front-running bots that can steal the prize.\n"
         "3. Keep this file offline. Anyone with this key owns the coins.\n"
     )
-    # Create with restrictive permissions from the start.
+    # Create with restrictive permissions from the start. Note: the 0o600 mode
+    # only restricts access on POSIX; on Windows it does not (NTFS uses ACLs),
+    # so treat the file as sensitive regardless of platform.
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(body)
