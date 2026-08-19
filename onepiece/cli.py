@@ -47,17 +47,13 @@ def cmd_list(args):
 def _run(puzzle_n: int, sentence: str, intensity: int, port: int,
          max_seconds, no_dashboard: bool, balance_interval: int):
     p = get_puzzle(puzzle_n)
-    if p.type != "address-only":
-        print(f"Note: puzzle #{p.n} is public-key exposed. The Kangaroo path is not")
-        print("implemented yet in this build; only address-only brute force runs today.")
-        return 2
-
+    method = "Kangaroo" if p.type == "pubkey-exposed" else "brute force"
     seed_hex = seedmod.seed_hash_hex(seedmod.seed_from_sentence(sentence))
     path = statemod.state_path(p.n, seed_hex)
     cpu = os.cpu_count() or 4
     workers = intensity_to_workers(intensity, cpu)
 
-    print(f"\n🏴 Hunting puzzle #{p.n} ({p.address})")
+    print(f"\n🏴 Hunting puzzle #{p.n} ({p.address}) via {method}")
     print(f"   {intensity_description(intensity, cpu)}")
     print(f"   your sentence seeds region {seed_hex[:16]}… (same sentence = resume)")
     if not no_dashboard:
