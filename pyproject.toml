@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onepiece-bitcoin"
+version = "0.1.0"
+description = "A local, network-silent solver for the unsolved Bitcoin Puzzle. The treasure exists. You find it, or you don't."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Gi Hyuk Ryu" }]
+keywords = ["bitcoin", "bitcoin-puzzle", "secp256k1", "kangaroo", "cryptography"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/RyuK-H/OnePiece-Bitcoin"
+Issues = "https://github.com/RyuK-H/OnePiece-Bitcoin/issues"
+
+[project.scripts]
+onepiece = "onepiece.cli:main"
+
+[tool.setuptools]
+packages = ["onepiece"]
