@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: test (py ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: crypto self-test
+        run: python -m onepiece.crypto
+      - name: search self-test
+        run: python -m onepiece.search
+      - name: kangaroo self-test
+        run: python -m onepiece.kangaroo
+      - name: brute found integration
+        run: python tests/test_found.py
+      - name: kangaroo found integration
+        run: python tests/test_kangaroo.py
+      - name: cli list runs
+        run: python -m onepiece list
