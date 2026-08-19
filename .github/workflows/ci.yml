@@ -28,5 +28,7 @@ jobs:
         run: python tests/test_found.py
       - name: kangaroo found integration
         run: python tests/test_kangaroo.py
+      - name: resume across worker-count changes
+        run: python tests/test_resume.py
       - name: cli list runs
         run: python -m onepiece list
