@@ -76,7 +76,7 @@ async function tick(){
    '<div class="card"><div class="k">'+triedLabel+'</div><div class="v">'+fmt(s.keys_tried)+'</div></div>'+
    '<div class="card"><div class="k">'+rateLabel+'</div><div class="v">'+fmt(Math.round(s.rate_per_sec||0))+'</div></div>'+
    '<div class="card"><div class="k">total keyspace (2^'+s.keyspace_pow+')</div><div class="v small">'+s.keyspace_full+'</div></div>'+
-   '<div class="card"><div class="k">how far you are</div><div class="v small">'+(s.one_in_str?('you have searched 1 in '+s.one_in_str+'<br>of all keys — a drop in the ocean'):'—')+'</div></div>'+
+   '<div class="card"><div class="k">how far you are</div><div class="v small">'+(s.one_in_words?('you have searched 1 in '+s.one_in_words+' of all keys<br>'+s.voyage_line):'—')+'</div></div>'+
    '<div class="card"><div class="k">workers</div><div class="v">'+s.workers+' (intensity '+s.intensity+')</div></div>'+
    '</div>'+
    '<div class="grid">'+cells+'</div>';
@@ -108,8 +108,48 @@ def _lit_cells(st: dict) -> list[int]:
         return []
 
 
-def _sci(n: int) -> str:
-    return f"{n:.2e}".replace("e+0", "e").replace("e+", "e")
+EARTH_SUN_M = 1.496e11  # one astronomical unit, the "voyage" the progress line maps onto
+
+_SCALES = (
+    (1e3, "thousand"), (1e6, "million"), (1e9, "billion"),
+    (1e12, "trillion"), (1e15, "quadrillion"), (1e18, "quintillion"),
+)
+
+
+def _one_in_words(n: int) -> str:
+    """1 in N, in words a human can hold: '11.3 trillion', not '1.13e13'.
+
+    Past quintillions the names stop meaning anything, so switch to digit
+    count, which stays visceral ('a 44-digit number').
+    """
+    if n < 1000:
+        return f"{n:,}"
+    for base, name in _SCALES:
+        v = n / base
+        if v < 999.5:  # would render as 4 digits — promote to the next scale
+            return f"{v:.3g} {name}"
+    return f"a {len(str(n))}-digit number"
+
+
+def _voyage_line(fraction: float) -> str:
+    """Map searched fraction onto an Earth→Sun voyage and say how far you got."""
+    m = EARTH_SUN_M * fraction
+    if m >= 1000:
+        dist = f"{m / 1000:,.1f} km"
+    elif m >= 1:
+        dist = f"{m:,.1f} m"
+    elif m >= 0.01:
+        dist = f"{m * 100:.1f} cm"
+    elif m >= 1e-3:
+        dist = f"{m * 1000:.2f} mm"
+    elif m >= 1e-6:
+        dist = f"{m * 1e6:.2f} µm (thinner than a hair)"
+    elif m >= 1e-10:
+        dist = f"{m * 1e9:.2f} nm (a few atoms)"
+    else:
+        return ("if the keyspace were the distance from Earth to the Sun, "
+                "you have not yet sailed the width of a single atom")
+    return f"if the keyspace were the distance from Earth to the Sun, you have sailed {dist}"
 
 
 def _augment(st: dict) -> dict:
@@ -123,7 +163,12 @@ def _augment(st: dict) -> dict:
     # full number agree (the search WIDTH, not the upper bound 2^n).
     st["keyspace_pow"] = (size.bit_length() - 1) if size else 0
     st["keyspace_full"] = f"{size:,}"
-    st["one_in_str"] = _sci(size // tried) if tried > 0 else None
+    if tried > 0:
+        st["one_in_words"] = _one_in_words(size // tried)
+        st["voyage_line"] = _voyage_line(tried / size)
+    else:
+        st["one_in_words"] = None
+        st["voyage_line"] = None
     st["lit_cells"] = _lit_cells(st)
     return st
 
