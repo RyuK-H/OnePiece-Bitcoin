@@ -16,7 +16,7 @@ Because we use no network, random dispersion from a per-user seed is the optimal
 
 **3. Do not spend memory to avoid duplicates.**
 
-Duplicate avoidance is already free. The `(seed, counter)` stream is deterministic and monotonic, so advancing the counter never revisits a point. Do not introduce visited-sets, bloom filters, on-disk indexes of tried keys, or anything whose memory grows with keys tried. State must stay a few hundred bytes.
+Duplicate avoidance is already free. The `(seed, counter)` stream is deterministic and monotonic, so advancing the counter never revisits a point. Do not introduce visited-sets, bloom filters, on-disk indexes of tried keys, or anything whose memory grows with keys tried. State must stay a few hundred bytes. (The one allowed exception is the Kangaroo engine's distinguished-point table: that memory buys the algorithm's sqrt speedup on public-key-exposed puzzles and is capped. This rule is about not adding memory to the brute-force path.)
 
 **4. Keep the network silent.**
 

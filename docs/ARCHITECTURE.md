@@ -59,7 +59,7 @@ Resume is triggered by the sentence, not by a separate flag. Typing the same sen
 ## Search modes
 
 - **Address-only** (#71 etc., public key hidden): brute force. From a start point, derive key, public key, and address hash, then compare offline to the target.
-- **Public-key exposed** (e.g. #160): Pollard's Kangaroo. This algorithm is a pseudorandom walk by nature, meshing cleanly with the "random jump" UX. The same seed fixes the walk's starting offset.
+- **Public-key exposed** (140, 145, 150, 155, 160): Pollard's Kangaroo. When the public key is known and the key lies in a known interval, this finds it in about `2*sqrt(interval)` group operations instead of scanning the whole interval. It is a pseudorandom walk by nature, so it meshes cleanly with the "random jump" UX; the seed fixes each herd's jumps and starting offsets. Kangaroo does keep a bounded table of distinguished points: that memory is the algorithmic price of the sqrt speedup, not a duplicate-avoidance cache, and it is capped so memory stays bounded. (On the real intervals, 2^134 and up, it still never finishes. The odds are unchanged.)
 
 ## Network policy: the single outbound call
 
