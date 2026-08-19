@@ -1,4 +1,13 @@
-# Rust
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Local hunt home (if ONEPIECE_HOME is pointed inside the repo)
+.onepiece/
+
+# Rust (reserved for a future optional fast path)
 /target
 **/*.rs.bk
 Cargo.lock
