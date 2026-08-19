@@ -10,6 +10,7 @@ per-worker counters, never a record of visited keys.
 """
 
 from __future__ import annotations
+import glob
 import json
 import os
 import time
@@ -38,6 +39,26 @@ def kangaroo_ckpt_path(puzzle_n: int, seed_hash_hex: str, worker: int) -> str:
     table), so a Kangaroo hunt resumes its walk instead of restarting the herd.
     Keyed by (puzzle, sentence-seed, worker) like the brute-force counters."""
     return os.path.join(HUNTS_DIR, f"{puzzle_n}-{seed_hash_hex[:8]}.kang-w{worker}.json")
+
+
+def clear_kangaroo_ckpts(puzzle_n: int, seed_hash_hex: str) -> int:
+    """Delete ALL per-worker Kangaroo checkpoints for a (puzzle, seed).
+
+    Call this ONLY when a hunt has terminally finished — the key was found, or
+    the balance went to zero (solved/withdrawn). Never on a pause (interrupt or
+    timeout): those must keep their checkpoints so the same sentence resumes.
+    This also sweeps orphan checkpoints left by a previously larger worker count.
+    Returns how many files were removed.
+    """
+    pattern = os.path.join(HUNTS_DIR, f"{puzzle_n}-{seed_hash_hex[:8]}.kang-w*.json")
+    removed = 0
+    for p in glob.glob(pattern):
+        try:
+            os.remove(p)
+            removed += 1
+        except OSError:
+            pass
+    return removed
 
 
 def load(path: str) -> dict | None:
