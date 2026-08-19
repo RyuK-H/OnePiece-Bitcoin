@@ -33,6 +33,13 @@ def state_path(puzzle_n: int, seed_hash_hex: str) -> str:
     return os.path.join(HUNTS_DIR, f"{puzzle_n}-{seed_hash_hex[:8]}.json")
 
 
+def kangaroo_ckpt_path(puzzle_n: int, seed_hash_hex: str, worker: int) -> str:
+    """Per-worker Kangaroo checkpoint (herd positions + distinguished-point
+    table), so a Kangaroo hunt resumes its walk instead of restarting the herd.
+    Keyed by (puzzle, sentence-seed, worker) like the brute-force counters."""
+    return os.path.join(HUNTS_DIR, f"{puzzle_n}-{seed_hash_hex[:8]}.kang-w{worker}.json")
+
+
 def load(path: str) -> dict | None:
     try:
         with open(path, "r", encoding="utf-8") as f:

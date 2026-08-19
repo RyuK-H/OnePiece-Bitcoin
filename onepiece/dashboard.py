@@ -12,10 +12,12 @@ import base64
 import json
 import os
 import threading
+from math import isqrt
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import seed as seedmod
 from . import state as statemod
+from .kangaroo import POSITION_BITS
 
 GRID_COLS = 80
 GRID_ROWS = 34          # the grid flex-grows to fill the viewport; rows keep cells ~square
@@ -104,21 +106,31 @@ async function tick(){
   if(s.status==='stopped-empty') statusText='balance 0';
   const lit=new Set(s.lit_cells||[]);
   let cells='';for(let i=0;i<%CELLS%;i++){cells+='<div class="cell'+(lit.has(i)?' lit':'')+'"></div>';}
+  const workNoun = kang ? 'the group ops Kangaroo expects' : 'all keys';
   const far = s.voyage_sailed
    ? '<div class="v xl">sailed '+esc(s.voyage_sailed)+'</div>'+
-     '<div class="cap">of the ~150-million-km trip from Earth to the Sun, if the whole keyspace were that far</div>'+
-     '<div class="cap">1 part in '+esc(s.one_in_words)+' of all keys &mdash; the more you search, the smaller that gets</div>'
-   : '<div class="v xl">just cast off</div><div class="cap">the first keys are being tested&hellip;</div>';
+     '<div class="cap">of the ~150-million-km trip from Earth to the Sun, if the whole search were that far</div>'+
+     '<div class="cap">1 part in '+esc(s.one_in_words)+' of '+workNoun+' &mdash; the more you search, the smaller that gets</div>'
+   : '<div class="v xl">just cast off</div><div class="cap">the first '+(kang?'hops are':'keys are')+' being tested&hellip;</div>';
+  // Kangaroo leads with the EFFECTIVE difficulty (~2^70), not the raw 2^139
+  // interval — the exposed public key is exactly what makes the real number
+  // the square-root one. Brute force has no such gap: keyspace == difficulty.
+  const kcard = kang
+   ? '<div class="card"><div class="k">work to crack</div>'+
+     '<div class="pow">2<sup>'+s.difficulty_pow+'</sup></div>'+
+     '<div class="cap">~that many group ops &mdash; Kangaroo (&radic; speedup)</div>'+
+     '<div class="cap">the key sits in a 2<sup>'+s.keyspace_pow+'</sup> interval; the exposed public key cuts the work to this</div></div>'
+   : '<div class="card"><div class="k">total keyspace</div>'+
+     '<div class="pow">2<sup>'+s.keyspace_pow+'</sup></div>'+
+     '<div class="cap">two to the '+ordinal(s.keyspace_pow)+' power</div>'+
+     '<div class="cap">'+s.keyspace_full+' keys</div></div>';
   app.innerHTML =
    '<div class="hero">'+
     '<div class="card status" style="border-color:'+col+'"><div class="k">status</div>'+
      '<div class="v xl" style="color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+statusText+'</div>'+
      '<div class="cap">'+s.workers+' worker'+(s.workers==1?'':'s')+' &middot; '+fmt(Math.round(s.rate_per_sec||0))+' '+rateLabel+'</div></div>'+
     '<div class="card"><div class="k">how far you are</div>'+far+'</div>'+
-    '<div class="card"><div class="k">total keyspace</div>'+
-     '<div class="pow">2<sup>'+s.keyspace_pow+'</sup></div>'+
-     '<div class="cap">two to the '+ordinal(s.keyspace_pow)+' power</div>'+
-     '<div class="cap">'+s.keyspace_full+' keys</div></div>'+
+    kcard+
    '</div>'+
    '<div class="bar">'+
    '<div class="card"><div class="k">puzzle</div><div class="v">#'+s.puzzle+'</div><div class="cap">'+esc(s.type)+'</div></div>'+
@@ -137,16 +149,26 @@ tick();setInterval(tick,1000);
 
 
 def _lit_cells(st: dict) -> list[int]:
-    """Recompute each RUNNING worker's current start point and map it to a cell.
+    """Map the live search's current spots to grid cells.
 
-    The seed_hash IS the seed (sha256 of the sentence), so we can reproduce the
-    start points from the state file alone. Only the workers actually running
-    this session are lit: worker_counters may also hold preserved counters for
-    workers from a larger past run (kept so raising the count resumes them), and
-    those are not moving, so lighting them would misrepresent the live hunt.
-    (Only meaningful for brute force; Kangaroo tracks no counters, empty grid.)
+    Kangaroo: each kangaroo reports POSITION_BITS-wide scatter values (low bits
+    of its point's x-coordinate); scale each onto the grid. Brute force: the
+    seed_hash IS the seed, so we reproduce each RUNNING worker's current start
+    point from the state file. Only workers running this session are lit —
+    worker_counters may also hold preserved counters for workers from a larger
+    past run, and those are not moving, so lighting them would misrepresent it.
     """
     try:
+        if st.get("method") == "kangaroo":
+            cells = set()
+            for pos in st.get("kangaroo_positions", []):
+                try:
+                    p = int(pos)
+                except (TypeError, ValueError):
+                    continue  # skip a bad entry, keep the good ones (don't blank)
+                if p:  # 0 = a slot not yet written by its worker
+                    cells.add(min(GRID_CELLS - 1, (p * GRID_CELLS) >> POSITION_BITS))
+            return sorted(cells)
         seed = bytes.fromhex(st["seed_hash"])
         lo = st["keyspace_lo"]
         size = st["keyspace_hi"] - lo
@@ -203,9 +225,14 @@ def _voyage_dist(fraction: float) -> str:
     if m >= 1e-3:
         return f"{m * 1000:.2f} mm"
     if m >= 1e-6:
-        return f"{m * 1e6:.2f} µm · thinner than a hair"
-    if m >= 1e-10:
-        return f"{m * 1e9:.2f} nm · a few atoms across"
+        um = m * 1e6
+        # a human hair is ~17–180 µm; only claim "thinner than a hair" when it
+        # is safely below that, not across the whole 1–999 µm bucket.
+        return f"{um:.2f} µm" + (" · thinner than a hair" if um < 15 else "")
+    if m >= 1e-9:
+        return f"{m * 1e9:.2f} nm · molecular scale"
+    if m >= 1e-12:
+        return f"{m * 1e12:.2f} pm · atomic scale"
     return "not yet a single atom's width"
 
 
@@ -221,9 +248,22 @@ def _augment(st: dict) -> dict:
     st["keyspace_pow"] = (size.bit_length() - 1) if size else 0
     st["keyspace_full"] = f"{size:,}"
     st["cores"] = os.cpu_count() or st.get("workers", 1)
-    if tried > 0 and size > 0:
-        st["one_in_words"] = _one_in_words(size // tried)
-        st["voyage_sailed"] = _voyage_dist(tried / size)
+
+    # Effective work to expect a solve. Brute force must scan the whole interval
+    # width; Kangaroo (public-key exposed) solves in ~2*sqrt(width) group ops —
+    # that square-root speedup is the whole reason those puzzles are attackable,
+    # so progress must be measured against THAT, not the raw 2^139 interval.
+    # (Measuring against 2^139 understated progress by ~20 orders of magnitude.)
+    if st.get("method") == "kangaroo" and size > 0:
+        difficulty = 2 * isqrt(size)
+        st["difficulty_pow"] = difficulty.bit_length() - 1
+    else:
+        difficulty = size
+        st["difficulty_pow"] = None
+
+    if tried > 0 and difficulty > 0:
+        st["one_in_words"] = _one_in_words(max(1, difficulty // tried))
+        st["voyage_sailed"] = _voyage_dist(min(1.0, tried / difficulty))
     else:
         st["one_in_words"] = None
         st["voyage_sailed"] = None

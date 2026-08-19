@@ -24,6 +24,8 @@ from .puzzles import Puzzle
 
 STRIDE = 2000          # keys scanned per counter step, per brute-force worker
 KANGAROO_BATCH = 4096  # group operations per step, per kangaroo worker
+KANGAROO_HERD = 8      # tame(4)+wild(4): kangaroos each worker reports for the map
+KANGAROO_CKPT_SECONDS = 30  # how often each kangaroo worker checkpoints its walk
 
 
 def _brute_worker(w, seed, target_h160, lo, size, stride,
@@ -43,14 +45,37 @@ def _brute_worker(w, seed, target_h160, lo, size, stride,
             return
 
 
-def _kangaroo_worker(w, Qx, Qy, a, b, seed, keys_tried, found_evt, result_q):
+def _kangaroo_worker(w, Qx, Qy, a, b, seed, keys_tried, found_evt, result_q,
+                     positions, n_kg, ckpt_path):
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # parent handles Ctrl-C via found_evt
     w_seed = seedmod.derive_worker_seed(seed, w)
-    solver = kangaroo.KangarooSolver((Qx, Qy), a, b, w_seed)
+    solver = kangaroo.KangarooSolver((Qx, Qy), a, b, w_seed,
+                                     tame_herd=n_kg // 2, wild_herd=n_kg - n_kg // 2)
+    # Resume this worker's walk from its checkpoint, if one exists (same seed).
+    if ckpt_path:
+        snap = statemod.load(ckpt_path)
+        if snap:
+            solver.restore(snap)
+    base = w * n_kg
+    # Read at runtime (not import) so spawned workers honor the env override.
+    ckpt_seconds = float(os.environ.get("ONEPIECE_KANGAROO_CKPT_SECONDS",
+                                        KANGAROO_CKPT_SECONDS))
+    last_ckpt = time.monotonic()
     while not found_evt.is_set():
         k, ops = solver.step_batch(KANGAROO_BATCH)
         with keys_tried.get_lock():
             keys_tried.value += ops
+        # Surface the herd's current spots so the dashboard can plot them.
+        herd = solver.herd_positions()
+        for i in range(min(n_kg, len(herd))):
+            positions[base + i] = herd[i]
+        # Periodically persist the walk so a restart resumes instead of restarting.
+        if ckpt_path and time.monotonic() - last_ckpt >= ckpt_seconds:
+            last_ckpt = time.monotonic()
+            try:
+                statemod.save(ckpt_path, solver.snapshot())
+            except Exception:
+                pass
         if k is not None:
             result_q.put((w, k))
             found_evt.set()
@@ -107,6 +132,7 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
     result_q = ctx.Queue()
 
     counters = None
+    kang_positions = None
     keys_before = 0
     started_at = statemod.now_iso()
     preserved_extra: list[int] = []
@@ -118,9 +144,18 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
         pub = bytes([0x02 if Q[1] % 2 == 0 else 0x03]) + Q[0].to_bytes(32, "big")
         if crypto.hash160_to_address(crypto.hash160(pub)) != puzzle.address:
             raise RuntimeError("public key does not match the puzzle address")
+        # Accumulate the ops counter across restarts (like the brute-force path)
+        # so a resumed Kangaroo hunt does not reset its progress to zero.
+        prev = statemod.load(path)
+        if prev and prev.get("seed_hash") == seed_hex:
+            keys_before = int(prev.get("keys_tried", 0))
+            started_at = prev.get("started_at", started_at)
+        kang_positions = ctx.Array("Q", [0] * (workers * KANGAROO_HERD))
         for w in range(workers):
+            ckpt = statemod.kangaroo_ckpt_path(puzzle.n, seed_hex, w)
             p = ctx.Process(target=_kangaroo_worker, args=(
-                w, Q[0], Q[1], lo, puzzle.keyspace_hi, seed, keys_tried, found_evt, result_q))
+                w, Q[0], Q[1], lo, puzzle.keyspace_hi, seed, keys_tried, found_evt,
+                result_q, kang_positions, KANGAROO_HERD, ckpt))
             p.daemon = True
             p.start()
             procs.append(p)
@@ -155,6 +190,7 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
         "keyspace_lo": lo,
         "keyspace_hi": puzzle.keyspace_hi,
         "worker_counters": worker_counters,
+        "kangaroo_positions": list(kang_positions) if kang_positions is not None else [],
         "keys_tried": keys_before,
         "started_at": started_at,
         "last_at": statemod.now_iso(),
@@ -184,6 +220,8 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
             st["keys_tried"] = keys_before + keys_tried.value
             if counters is not None:
                 st["worker_counters"] = list(counters) + preserved_extra
+            if kang_positions is not None:
+                st["kangaroo_positions"] = list(kang_positions)
             st["last_at"] = statemod.now_iso()
             rate = (st["keys_tried"] - keys_before) / elapsed if elapsed > 0 else 0.0
             st["rate_per_sec"] = round(rate, 1)

@@ -30,5 +30,7 @@ jobs:
         run: python tests/test_kangaroo.py
       - name: resume across worker-count changes
         run: python tests/test_resume.py
+      - name: kangaroo resume / checkpoint
+        run: python tests/test_kangaroo_resume.py
       - name: cli list runs
         run: python -m onepiece list

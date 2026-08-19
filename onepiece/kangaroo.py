@@ -23,6 +23,14 @@ G = (crypto.GX, crypto.GY)
 N = crypto.N
 P = crypto.P
 
+# How many low bits of a kangaroo's point x-coordinate we surface for the
+# dashboard to plot. The value is scattered uniformly over [0, 2^POSITION_BITS),
+# so the dashboard can map it onto a grid cell independent of grid size. Kept
+# under 63 so it fits an unsigned 64-bit shared-memory slot. hunt.py writes it,
+# dashboard.py reads it — keep the two in sync via this constant.
+POSITION_BITS = 62
+_POSITION_MASK = (1 << POSITION_BITS) - 1
+
 
 def _neg(pt):
     x, y = pt
@@ -72,6 +80,58 @@ class KangarooSolver:
             off = j
             pt = self.Qp if j == 0 else crypto.point_add(self.Qp, crypto.scalar_mul(j))
             self.wild.append({"pt": pt, "dist": 0, "off": off})
+
+    def snapshot(self) -> dict:
+        """Serializable state so a stopped hunt resumes its walk, not restarts.
+
+        Saves each kangaroo's current point + accumulated scalar, the ops count,
+        and the distinguished-point table (the traps that buy the sqrt speedup).
+        The seed-derived jump table is NOT saved — it is rebuilt from the same
+        sentence-seed on restore, so it must not change across restarts.
+        """
+        return {
+            "ops": self.ops,
+            "tame": [[kg["pt"][0], kg["pt"][1], kg["val"]] for kg in self.tame],
+            "wild": [[kg["pt"][0], kg["pt"][1], kg["dist"], kg["off"]] for kg in self.wild],
+            "dp": [[x, kind, val] for x, (kind, val) in self.dp.items()],
+        }
+
+    def restore(self, snap: dict) -> None:
+        """Reload a snapshot() into this freshly-constructed solver in place.
+
+        Herd sizes are whatever this instance was built with; only the overlap
+        with the snapshot is restored, so a resume with fewer/more kangaroos
+        keeps what it can (extra kangaroos just start from their seeded points).
+        """
+        try:
+            self.ops = int(snap.get("ops", 0))
+        except (TypeError, ValueError):
+            self.ops = 0
+        for i, row in enumerate(snap.get("tame", [])):
+            if i < len(self.tame) and len(row) >= 3:
+                self.tame[i]["pt"] = (int(row[0]), int(row[1]))
+                self.tame[i]["val"] = int(row[2])
+        for i, row in enumerate(snap.get("wild", [])):
+            if i < len(self.wild) and len(row) >= 4:
+                self.wild[i]["pt"] = (int(row[0]), int(row[1]))
+                self.wild[i]["dist"] = int(row[2])
+                self.wild[i]["off"] = int(row[3])
+        for row in snap.get("dp", []):
+            try:
+                if len(row) >= 3 and len(self.dp) < self.max_dp:
+                    self.dp[int(row[0])] = (row[1], int(row[2]))
+            except (TypeError, ValueError):
+                continue
+
+    def herd_positions(self) -> list[int]:
+        """Each kangaroo's current spot, as POSITION_BITS-wide scatter values.
+
+        Tame herd first, then wild. Purely for visualization: the value is the
+        low bits of the current point's x-coordinate, which moves every hop, so
+        the dashboard can show the herd roaming the field.
+        """
+        return [(kg["pt"][0] & _POSITION_MASK) for kg in self.tame] + \
+               [(kg["pt"][0] & _POSITION_MASK) for kg in self.wild]
 
     def _distinguished(self, x: int) -> bool:
         return (x & self.mask) == 0
