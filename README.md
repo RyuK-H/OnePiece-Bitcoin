@@ -60,7 +60,9 @@ python3 -m onepiece list
 python3 -m onepiece status
 ```
 
-While a hunt runs, a read-only dashboard is live at **http://localhost:7100**, and progress is saved to a small local state file (shown by `onepiece status`). `--intensity` (1 to 10) sets how many worker processes and how much of your spare CPU the hunt uses. Nothing else phones home.
+While a hunt runs, a read-only dashboard is live at **http://localhost:7100**, and progress is saved to a small local state file (shown by `python3 -m onepiece status`). `--intensity` (1 to 10) sets how many worker processes and how much of your spare CPU the hunt uses. Nothing else phones home.
+
+Prefer a short command? `pip install -e .` installs an `onepiece` command that does the same thing (`onepiece start`, `onepiece list`, `onepiece hunt ...`). It is still pure standard library with no runtime dependencies.
 
 ## The unsolved fleet
 
@@ -169,7 +171,7 @@ The five **public-key exposed** targets above (140, 145, 150, 155, 160) are the 
 
 ## Contributing
 
-The one rule that matters: this hunt is won by burning the fewest resources, not the most. Because we never coordinate over a network, random guessing is the most efficient collective strategy, and remembering where you've been must cost almost no memory. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before you open a PR.
+The one rule that matters: this hunt is won by burning the fewest resources, not the most. Because we never coordinate over a network, random guessing is the most efficient collective strategy, and remembering where you've been must cost almost no memory. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before you open a PR. See also the [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md).
 
 ## License
 
