@@ -276,4 +276,9 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
         }
     st["last_at"] = statemod.now_iso()
     statemod.save(path, st)
+    # Tidy up only on a TERMINAL finish — never on a pause (interrupt/timeout),
+    # whose checkpoints must survive so the same sentence resumes. No-op for
+    # brute force (it has no kangaroo checkpoints).
+    if st.get("status") in ("found", "stopped-empty"):
+        statemod.clear_kangaroo_ckpts(puzzle.n, seed_hex)
     return st
