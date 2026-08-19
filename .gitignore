@@ -1,0 +1,23 @@
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock
+
+# Local hunt state — seeds, counters, progress (never commit)
+/state/
+*.state.json
+.onepiece/
+
+# Secrets — never, ever commit a key or wallet
+*.key
+*.wif
+wallet.dat
+.env
+.secrets/
+found-*.txt
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
