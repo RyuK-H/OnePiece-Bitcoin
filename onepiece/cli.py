@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import time
 
 from . import seed as seedmod
 from . import state as statemod
@@ -23,6 +24,7 @@ from .hunt import run_hunt
 from .dashboard import serve_in_thread
 
 DEFAULT_PORT = 7100
+LOG_INTERVAL = 30.0  # seconds between progress lines when stdout is not a TTY
 
 
 def _status_location(state_path: str, port: int) -> str:
@@ -76,12 +78,22 @@ def _run(puzzle_n: int, sentence: str, intensity: int, port: int,
             print(f"(dashboard could not start on port {port}: {e})")
     print("\nPress Ctrl-C to stop. Your progress is saved; the same sentence resumes.\n")
 
+    # On a TTY, rewrite one line in place. Redirected to a file (nohup, detached
+    # runners, CI), \r rewrites concatenate into one unreadable line — emit a
+    # normal newline-terminated line every LOG_INTERVAL seconds instead.
+    is_tty = sys.stdout.isatty()
+    last_log = [0.0]
+
     def on_status(st):
         rate = st.get("rate_per_sec", 0)
-        sys.stdout.write(
-            f"\r  keys tried: {st['keys_tried']:>18,}   {rate:>10,.0f} keys/s   "
-            f"workers: {st['workers']}   status: {st['status']}   ")
-        sys.stdout.flush()
+        line = (f"  keys tried: {st['keys_tried']:>18,}   {rate:>10,.0f} keys/s   "
+                f"workers: {st['workers']}   status: {st['status']}")
+        if is_tty:
+            sys.stdout.write("\r" + line + "   ")
+            sys.stdout.flush()
+        elif time.monotonic() - last_log[0] >= LOG_INTERVAL:
+            last_log[0] = time.monotonic()
+            print(line, flush=True)
 
     st = run_hunt(p, sentence, intensity, balance_interval=balance_interval,
                   max_seconds=max_seconds, on_status=on_status)
@@ -104,7 +116,26 @@ def _run(puzzle_n: int, sentence: str, intensity: int, port: int,
 
 
 def cmd_hunt(args):
-    return _run(args.puzzle, args.sentence, args.intensity, args.port,
+    sentence = args.sentence
+    if not sentence or not sentence.strip():
+        # The sentence must come from the human — it decides their search
+        # region and is the only thing that resumes a hunt. Prompt when a
+        # human is present; otherwise fail loudly so no caller (including an
+        # AI agent) is tempted to invent one on the user's behalf.
+        if sys.stdin.isatty():
+            print("No --sentence given. It seeds your search region; the same")
+            print("sentence resumes a stopped hunt exactly where it left off.")
+            print("Write one meaningful sentence (a One Piece line, a motto…).")
+            try:
+                sentence = input("Your sentence: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\nCancelled.")
+                return 1
+        if not sentence or not sentence.strip():
+            print("A meaningful sentence is required:  --sentence \"...\"")
+            print("It must be the user's own words — never invented for them.")
+            return 1
+    return _run(args.puzzle, sentence, args.intensity, args.port,
                 args.max_seconds, args.no_dashboard, args.balance_interval)
 
 
@@ -184,7 +215,8 @@ def build_parser():
     h = sub.add_parser("hunt", help="run a hunt non-interactively")
     h.add_argument("--puzzle", type=int, required=True)
     h.add_argument("--intensity", type=int, default=4)
-    h.add_argument("--sentence", required=True)
+    h.add_argument("--sentence",
+                   help="your meaningful sentence (prompted interactively if omitted)")
     h.add_argument("--port", type=int, default=DEFAULT_PORT)
     h.add_argument("--no-dashboard", action="store_true")
     h.add_argument("--max-seconds", type=float, default=None)
