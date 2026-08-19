@@ -23,7 +23,7 @@ def main():
                     public_key=pub, keyspace_lo=1 << 24, keyspace_hi=1 << 25)
 
     st = run_hunt(puzzle, sentence="kangaroo integration", intensity=1,
-                  balance_interval=10 ** 9, max_seconds=90)
+                  max_seconds=90, check_balance=False)
 
     assert st["method"] == "kangaroo", st.get("method")
     assert st["status"] == "found", f"expected found, got {st['status']}"

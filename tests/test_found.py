@@ -22,7 +22,7 @@ def main():
                     public_key=None, keyspace_lo=1 << 12, keyspace_hi=1 << 13)
 
     st = run_hunt(puzzle, sentence="find the planted key", intensity=1,
-                  balance_interval=10 ** 9, max_seconds=60)
+                  max_seconds=60, check_balance=False)
 
     assert st["status"] == "found", f"expected found, got {st['status']}"
     kf = st["found"]["key_file"]

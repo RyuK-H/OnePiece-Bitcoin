@@ -61,7 +61,7 @@ def years_to_exhaust(keyspace_size: int, rate_per_sec: float) -> float:
 
 def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
              balance_interval: int = 3600, max_seconds: float | None = None,
-             on_status=None) -> dict:
+             on_status=None, check_balance: bool = True) -> dict:
     """Run the hunt until the key is found, interrupted, or max_seconds elapses.
 
     Dispatches to brute force or Kangaroo based on puzzle.type. Returns the
@@ -140,7 +140,11 @@ def run_hunt(puzzle: Puzzle, sentence: str, intensity: int,
     statemod.save(path, st)
 
     t0 = time.time()
-    last_balance_t = t0  # first balance check happens after one interval, not at t=0
+    if check_balance:
+        # First balance check ~2s in (so the dashboard shows it), then every interval.
+        last_balance_t = t0 - balance_interval + 2.0
+    else:
+        last_balance_t = float("inf")
     found_key = None
     try:
         while True:

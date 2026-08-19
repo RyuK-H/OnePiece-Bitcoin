@@ -8,7 +8,9 @@ Read-only and network-independent: it only reads the local state file.
 """
 
 from __future__ import annotations
+import base64
 import json
+import os
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -19,61 +21,77 @@ GRID_COLS = 80
 GRID_ROWS = 40
 GRID_CELLS = GRID_COLS * GRID_ROWS
 
+_ASSET = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "assets", "gol-d-roger.webp")
+try:
+    with open(_ASSET, "rb") as _f:
+        _BG_B64 = base64.b64encode(_f.read()).decode("ascii")
+except OSError:
+    _BG_B64 = ""
+
 _PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <title>OnePiece Bitcoin</title><style>
- body{background:#05070d;color:#c9d4e5;font-family:ui-monospace,Menlo,monospace;margin:0;padding:24px}
+ :root{--green:#3ddc84;--red:#ff4d4d;--amber:#ff9f43;--gray:#8aa0c6}
+ *{box-sizing:border-box}
+ body{background:#05070d;color:#c9d4e5;font-family:ui-monospace,Menlo,monospace;margin:0;padding:24px;position:relative;min-height:100vh}
+ body::before{content:"";position:fixed;inset:0;background:url(data:image/webp;base64,%BG%) center/contain no-repeat;opacity:.06;pointer-events:none;z-index:0}
+ .wrap{position:relative;z-index:1}
  h1{font-size:18px;margin:0 0 4px} .sub{color:#5b6b86;font-size:12px;margin-bottom:18px}
- .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
- .card{background:#0b1120;border:1px solid #16203a;border-radius:8px;padding:10px 12px}
- .k{color:#5b6b86;font-size:11px;text-transform:uppercase;letter-spacing:.04em} .v{font-size:16px;margin-top:3px}
- a{color:#4da3ff} .grid{display:grid;grid-template-columns:repeat(%COLS%,1fr);gap:1px;background:#0b1120;border:1px solid #16203a;border-radius:8px;padding:6px}
+ .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+ .card{background:rgba(11,17,32,.82);border:1px solid #16203a;border-radius:8px;padding:10px 12px}
+ .k{color:#5b6b86;font-size:11px;text-transform:uppercase;letter-spacing:.04em} .v{font-size:16px;margin-top:3px;word-break:break-word}
+ .v.small{font-size:12px;line-height:1.35} a{color:#4da3ff}
+ .status .v{font-weight:700}
+ .grid{display:grid;grid-template-columns:repeat(%COLS%,1fr);gap:1px;background:rgba(11,17,32,.82);border:1px solid #16203a;border-radius:8px;padding:6px}
  .cell{width:100%;aspect-ratio:1;background:#0d1424;border-radius:1px} .cell.lit{background:#4da3ff;box-shadow:0 0 6px #4da3ff}
- .found{background:#123a1e;border-color:#1f7a3a;color:#7CFF9B} .empty{color:#ff7c7c}
  .foot{color:#5b6b86;font-size:11px;margin-top:14px}
-</style></head><body>
+</style></head><body><div class="wrap">
 <h1>&#127988; OnePiece Bitcoin</h1>
 <div class="sub">The treasure exists. You find it, or you don't.</div>
 <div id="app">loading&hellip;</div>
 <div class="foot">Read-only view of your local hunt. This page makes no network calls of its own.</div>
+</div>
 <script>
-function fmt(n){return n.toLocaleString()}
+const COLORS={running:'var(--green)',found:'var(--red)','stopped-empty':'var(--amber)','stopped-timeout':'var(--gray)','stopped-interrupt':'var(--gray)'};
+function fmt(n){return Number(n).toLocaleString()}
 async function tick(){
  try{
   const s=await (await fetch('/api/state')).json();
   const app=document.getElementById('app');
   if(s.error){app.textContent=s.error;return;}
-  const cov=s.coverage_fraction;
-  const covStr = cov>0 ? (cov<1e-6 ? cov.toExponential(2) : (cov*100).toFixed(8)+'%') : '0%';
-  let statusCard = '<div class="card"><div class="k">status</div><div class="v">'+s.status+'</div></div>';
-  if(s.status==='found'){statusCard='<div class="card found"><div class="k">status</div><div class="v">KEY FOUND &mdash; move funds now, see '+ (s.found&&s.found.key_file||'') +'</div></div>';}
-  if(s.status==='stopped-empty'){statusCard='<div class="card empty"><div class="k">status</div><div class="v">balance is 0 &mdash; solved or withdrawn, stopped</div></div>';}
-  let cells='';
+  const kang = s.method==='kangaroo';
+  const rateLabel = kang?'group ops / sec':'keys tested / sec';
+  const triedLabel = kang?'group ops done':'keys tested';
+  const col = COLORS[s.status]||'var(--gray)';
+  let statusText = s.status;
+  if(s.status==='found') statusText='KEY FOUND — move funds now';
+  if(s.status==='stopped-empty') statusText='balance 0 — solved/withdrawn';
   const lit=new Set(s.lit_cells||[]);
-  for(let i=0;i<%CELLS%;i++){cells+='<div class="cell'+(lit.has(i)?' lit':'')+'"></div>';}
+  let cells='';for(let i=0;i<%CELLS%;i++){cells+='<div class="cell'+(lit.has(i)?' lit':'')+'"></div>';}
   app.innerHTML =
    '<div class="stats">'+
    '<div class="card"><div class="k">puzzle</div><div class="v">#'+s.puzzle+' &middot; '+s.type+'</div></div>'+
-   '<div class="card"><div class="k">target</div><div class="v"><a href="https://mempool.space/address/'+s.address+'" target="_blank">'+s.address.slice(0,10)+'&hellip;</a></div></div>'+
-   '<div class="card"><div class="k">balance</div><div class="v">'+(s.last_balance?(s.last_balance.sat/1e8).toFixed(4)+' BTC':'&mdash;')+'</div></div>'+
-   statusCard+
-   '<div class="card"><div class="k">keys tried</div><div class="v">'+fmt(s.keys_tried)+'</div></div>'+
-   '<div class="card"><div class="k">keys / sec</div><div class="v">'+fmt(Math.round(s.rate_per_sec||0))+'</div></div>'+
-   '<div class="card"><div class="k">coverage</div><div class="v">'+covStr+'</div></div>'+
-   '<div class="card"><div class="k">years to exhaust</div><div class="v">'+(isFinite(s.years_to_exhaust)?fmt(Math.round(s.years_to_exhaust)):'&infin;')+'</div></div>'+
+   '<div class="card"><div class="k">target</div><div class="v small"><a href="https://mempool.space/address/'+s.address+'" target="_blank">'+s.address+'</a></div></div>'+
+   '<div class="card"><div class="k">balance (live, hourly)</div><div class="v">'+(s.last_balance?(s.last_balance.sat/1e8).toFixed(4)+' BTC':'checking…')+'</div></div>'+
+   '<div class="card status" style="border-color:'+col+'"><div class="k">status</div><div class="v" style="color:'+col+'">'+statusText+'</div></div>'+
+   '<div class="card"><div class="k">'+triedLabel+'</div><div class="v">'+fmt(s.keys_tried)+'</div></div>'+
+   '<div class="card"><div class="k">'+rateLabel+'</div><div class="v">'+fmt(Math.round(s.rate_per_sec||0))+'</div></div>'+
+   '<div class="card"><div class="k">total keyspace (2^'+s.keyspace_pow+')</div><div class="v small">'+s.keyspace_full+'</div></div>'+
+   '<div class="card"><div class="k">how far you are</div><div class="v small">'+(s.one_in_str?('you have searched 1 in '+s.one_in_str+'<br>of all keys — a drop in the ocean'):'—')+'</div></div>'+
    '<div class="card"><div class="k">workers</div><div class="v">'+s.workers+' (intensity '+s.intensity+')</div></div>'+
    '</div>'+
    '<div class="grid">'+cells+'</div>';
  }catch(e){}
 }
 tick();setInterval(tick,1000);
-</script></body></html>""".replace("%COLS%", str(GRID_COLS)).replace("%CELLS%", str(GRID_CELLS))
+</script></body></html>""".replace("%COLS%", str(GRID_COLS)).replace("%CELLS%", str(GRID_CELLS)).replace("%BG%", _BG_B64)
 
 
 def _lit_cells(st: dict) -> list[int]:
     """Recompute each worker's current start point and map it to a grid cell.
 
     The seed_hash IS the seed (sha256 of the sentence), so we can reproduce the
-    start points from the state file alone.
+    start points from the state file alone. (Only meaningful for brute force,
+    which tracks worker_counters; Kangaroo has none and shows an empty grid.)
     """
     try:
         seed = bytes.fromhex(st["seed_hash"])
@@ -90,10 +108,22 @@ def _lit_cells(st: dict) -> list[int]:
         return []
 
 
+def _sci(n: int) -> str:
+    return f"{n:.2e}".replace("e+0", "e").replace("e+", "e")
+
+
 def _augment(st: dict) -> dict:
-    size = st.get("keyspace_hi", 0) - st.get("keyspace_lo", 0)
+    lo = st.get("keyspace_lo", 0)
+    hi = st.get("keyspace_hi", 0)
+    size = hi - lo
     st = dict(st)
-    st["coverage_fraction"] = (st.get("keys_tried", 0) / size) if size else 0
+    tried = st.get("keys_tried", 0)
+    st["keyspace_size"] = size
+    # size is a power of two (2^(n-1)); show that exponent so the label and the
+    # full number agree (the search WIDTH, not the upper bound 2^n).
+    st["keyspace_pow"] = (size.bit_length() - 1) if size else 0
+    st["keyspace_full"] = f"{size:,}"
+    st["one_in_str"] = _sci(size // tried) if tried > 0 else None
     st["lit_cells"] = _lit_cells(st)
     return st
 
@@ -108,18 +138,15 @@ def make_handler(state_path: str):
                 st = statemod.load(state_path)
                 payload = _augment(st) if st else {"error": "no active hunt yet"}
                 body = json.dumps(payload).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
+                ctype = "application/json"
             else:
                 body = _PAGE.encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
+                ctype = "text/html; charset=utf-8"
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
     return Handler
 
 
