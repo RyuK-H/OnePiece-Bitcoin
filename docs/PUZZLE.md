@@ -13,7 +13,7 @@ Keys are understood to be placed randomly within their range. The low numbers we
 ## Current state (verified 2026-08-20)
 
 - **83 of 160 solved, 77 unsolved**, holding **~903 BTC** in total. Every unsolved address was re-checked on-chain on this date.
-- Lowest unsolved address-only target **#71 (~7.1 BTC, 2⁷⁰)**. Measured in mid-2026, the community pool had scanned only **0.864%** of the keyspace, and at that speed it would take the whole pool combined about **421 years** to finish. This is a rough projection of effort, not a prediction that it gets solved on any date.
+- Lowest unsolved address-only target **#71 (~7.1 BTC, 2⁷⁰)**. Measured in mid-2026, a public community pool had scanned well under 1% of the keyspace (about 0.9% by its own telemetry), and at that speed the whole pool combined would need on the order of centuries to finish (a commonly cited figure is ~**421 years**). These are rough projections of effort, not predictions that it gets solved on any date, and they shift with assumed pool speed.
 - These numbers move. Check each address's live balance yourself via the explorer links in the [README fleet table](../README.md#the-unsolved-fleet).
 
 ## The creator's intent (documented facts vs. common understanding)

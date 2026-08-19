@@ -12,8 +12,8 @@ This file is written for you. Follow it top to bottom.
 
 Before doing anything, relay this to the user in your own words. Do not skip it. Honesty about the odds is the core of this project.
 
-- This searches for the private key of an unsolved Bitcoin Puzzle address.
-- A single machine's expected chance of finding it is effectively zero. Puzzle #71 alone would take the entire community pool about 421 years.
+- This searches for the private key of an unsolved Bitcoin Puzzle address. That is an open, on-chain bounty the puzzle's own creator funded, not anyone else's wallet. This is not a tool for accessing funds the user does not own.
+- A single machine's expected chance of finding it is effectively zero. Puzzle #71 alone would take the entire community pool on the order of centuries.
 - The puzzle creator can move the prize funds at any time.
 - Even a find might not pay out, because broadcasting the winning transaction exposes it to mempool front-running bots.
 - Running this costs electricity and will almost certainly never win. People run it for the hope and the hunt, not as an investment.

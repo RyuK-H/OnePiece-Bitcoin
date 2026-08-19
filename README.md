@@ -23,8 +23,9 @@
 ## The honest truth (read this first)
 
 - The Bitcoin Puzzle is a real, on-chain bounty created in 2015. As of **2026-08-20**, **83 of 160** puzzles are solved, and **77 remain unsolved holding ~903 BTC** (every unsolved address in this repo was re-verified on-chain that day).
-- The lowest unsolved address-only target, **Puzzle #71 (~7.1 BTC)**, has a keyspace of 2⁷⁰. At the search speed the community pool was measured at in mid-2026, exhausting that keyspace would take roughly **421 years** (a rough projection, not a deadline).
+- The lowest unsolved address-only target, **Puzzle #71 (~7.1 BTC)**, has a keyspace of 2⁷⁰. At the pool speed measured in mid-2026, exhausting it would take on the order of centuries (a commonly cited figure is ~**421 years**). It is a rough projection, not a deadline.
 - A single machine's expected outcome is effectively zero. Splitting the keyspace does not meaningfully raise your odds, and faster hardware does not either.
+- This searches an **open, on-chain bounty that the puzzle's own creator funded**, not anyone else's wallet. It is not a tool for accessing funds you do not own.
 - The puzzle creator can move the funds at any time. If they do, the prize is gone.
 - Even if you find a key, you might not collect it, because broadcasting the transaction exposes it to mempool front-running bots.
 
