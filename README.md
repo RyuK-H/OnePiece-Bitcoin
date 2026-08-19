@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/gol-d-roger.webp" alt="Gol D. Roger, the pirate who declared the One Piece is real" width="380">
+  <img src="docs/assets/gol-d.png" alt="A grinning pirate captain — the one who swears the treasure is real" width="380">
 </p>
 
 <h2 align="center">The odds of winning the lottery are 50%.<br>You win, or you don't.</h2>
 
-<p align="center"><em>Like Gol D. Roger, who declared the One Piece is real before anyone had found it,<br>this project makes one honest claim: the treasure exists.</em></p>
+<p align="center"><em>Like Gol D., who declared the One Piece is real before anyone had found it,<br>this project makes one honest claim: the treasure exists.</em></p>
 
 ---
 
@@ -40,6 +40,11 @@ None of this is a bug. It is the project. See [`docs/PUZZLE.md`](docs/PUZZLE.md)
 6. A `localhost` dashboard shows the keyspace as a grid. It will stay almost entirely dark. That darkness is the point.
 
 Full design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+<p align="center">
+  <img src="docs/assets/dashboard.jpg" alt="The local dashboard: status, how far you've searched, and the keyspace map" width="840">
+  <br><sub>The read-only dashboard at <code>http://localhost:7100</code>. The keyspace map stays almost entirely dark — that darkness is the point.</sub>
+</p>
 
 ## Quick start
 

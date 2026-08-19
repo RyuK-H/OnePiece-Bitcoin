@@ -18,10 +18,10 @@ from . import seed as seedmod
 from . import state as statemod
 
 GRID_COLS = 80
-GRID_ROWS = 40
+GRID_ROWS = 34          # the grid flex-grows to fill the viewport; rows keep cells ~square
 GRID_CELLS = GRID_COLS * GRID_ROWS
 
-_ASSET = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "assets", "gol-d-roger.webp")
+_ASSET = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "assets", "gol-d.png")
 try:
     with open(_ASSET, "rb") as _f:
         _BG_B64 = base64.b64encode(_f.read()).decode("ascii")
@@ -29,76 +29,131 @@ except OSError:
     _BG_B64 = ""
 
 _PAGE = """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OnePiece Bitcoin</title><style>
- :root{--green:#3ddc84;--red:#ff4d4d;--amber:#ff9f43;--gray:#8aa0c6}
+ /* palette borrowed from ryuology.com — warm paper + forest green, dark = ink + mint */
+ :root{
+  --bg:#f4f5f1;--fg:#17191a;--muted:#5b6455;--faint:#8a9382;
+  --accent:#1d7a44;--amber:#8a5a12;--danger:#b23b2e;--border:#dadfd4;--panel:#e9ece4;
+  --scan:rgba(0,0,0,.015);--cell:#dde1d7;--cell-lit:var(--accent)}
+ @media(prefers-color-scheme:dark){:root{
+  --bg:#0c0f0d;--fg:#e4e8e0;--muted:#8b9484;--faint:#545e4d;
+  --accent:#7dff9b;--amber:#e7b45a;--danger:#ff6b6b;--border:#1e251b;--panel:#12160f;
+  --scan:rgba(255,255,255,.012);--cell:#171d14;--cell-lit:var(--accent)}}
  *{box-sizing:border-box}
- body{background:#05070d;color:#c9d4e5;font-family:ui-monospace,Menlo,monospace;margin:0;padding:24px;position:relative;min-height:100vh}
- body::before{content:"";position:fixed;inset:0;background:url(data:image/webp;base64,%BG%) center/contain no-repeat;opacity:.06;pointer-events:none;z-index:0}
- .wrap{position:relative;z-index:1}
- h1{font-size:18px;margin:0 0 4px} .sub{color:#5b6b86;font-size:12px;margin-bottom:18px}
- .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
- .card{background:rgba(11,17,32,.82);border:1px solid #16203a;border-radius:8px;padding:10px 12px}
- .k{color:#5b6b86;font-size:11px;text-transform:uppercase;letter-spacing:.04em} .v{font-size:16px;margin-top:3px;word-break:break-word}
- .v.small{font-size:12px;line-height:1.35} a{color:#4da3ff}
- .status .v{font-weight:700}
- .grid{display:grid;grid-template-columns:repeat(%COLS%,1fr);gap:1px;background:rgba(11,17,32,.82);border:1px solid #16203a;border-radius:8px;padding:6px}
- .cell{width:100%;aspect-ratio:1;background:#0d1424;border-radius:1px} .cell.lit{background:#4da3ff;box-shadow:0 0 6px #4da3ff}
- .foot{color:#5b6b86;font-size:11px;margin-top:14px}
+ html,body{height:100%}
+ body{background:var(--bg);color:var(--fg);margin:0;padding:26px 22px 18px;position:relative;
+  min-height:100vh;display:flex;flex-direction:column;
+  font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Code",monospace;font-size:13px;
+  -webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent 0 3px,var(--scan) 3px 4px)}
+ body::after{content:"";position:fixed;inset:0;background:url(data:image/png;base64,%BG%) center/contain no-repeat;
+  opacity:.04;pointer-events:none;z-index:0}
+ .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;width:100%;flex:1;
+  display:flex;flex-direction:column}
+ #app{flex:1;display:flex;flex-direction:column;min-height:0}
+ .head{display:flex;align-items:baseline;gap:14px;margin-bottom:24px}
+ h1{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:17px;margin:0;letter-spacing:.01em;font-weight:800}
+ .tag{color:var(--faint);font-size:11.5px}
+ .hero{display:grid;grid-template-columns:1.05fr 1.5fr 1.1fr;gap:16px;margin-bottom:16px;flex:0 0 auto}
+ .bar{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;flex:0 0 auto}
+ .bar .card{flex:1 1 130px;min-width:120px}
+ @media(max-width:720px){.hero{grid-template-columns:1fr}}
+ .card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px}
+ .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+ .v{font-size:15px;margin-top:5px;line-height:1.25;word-break:break-word}
+ .v.xl{font-size:23px;letter-spacing:.01em;font-weight:700}
+ .v.small{font-size:12px}
+ .cap{color:var(--faint);font-size:10.5px;margin-top:5px;line-height:1.45}
+ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+ .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle;
+  box-shadow:0 0 7px currentColor}
+ .pow{font-size:26px;font-weight:700;letter-spacing:.01em;margin-top:5px}
+ .pow sup{font-size:.58em;font-weight:700;vertical-align:super;margin-left:.42em}
+ .mapwrap{padding:10px 12px;flex:1 1 auto;display:flex;flex-direction:column;min-height:120px}
+ .maphd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex:0 0 auto}
+ .maphd .k,.maphd .cap{margin:0}
+ .grid{flex:1;display:grid;grid-template-columns:repeat(%COLS%,1fr);grid-template-rows:repeat(%ROWS%,1fr);
+  gap:2px;min-height:0}
+ .cell{background:var(--cell);border-radius:1px;min-height:0}
+ .cell.lit{background:var(--cell-lit);box-shadow:0 0 6px var(--cell-lit)}
+ .foot{color:var(--faint);font-size:10.5px;margin-top:12px;flex:0 0 auto}
 </style></head><body><div class="wrap">
-<h1>&#127988; OnePiece Bitcoin</h1>
-<div class="sub">The treasure exists. You find it, or you don't.</div>
+<div class="head"><h1>&#127988; OnePiece Bitcoin</h1><span class="tag">The treasure exists. You find it, or you don&rsquo;t.</span></div>
 <div id="app">loading&hellip;</div>
-<div class="foot">Read-only view of your local hunt. This page makes no network calls of its own.</div>
+<div class="foot">Read-only view of your local hunt &middot; this page makes no network calls of its own.</div>
 </div>
 <script>
-const COLORS={running:'var(--green)',found:'var(--red)','stopped-empty':'var(--amber)','stopped-timeout':'var(--gray)','stopped-interrupt':'var(--gray)'};
+const COLORS={running:'var(--accent)',found:'var(--danger)','stopped-empty':'var(--amber)','stopped-timeout':'var(--muted)','stopped-interrupt':'var(--muted)'};
 function fmt(n){return Number(n).toLocaleString()}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function shortAddr(a){return a.length>16?a.slice(0,7)+'…'+a.slice(-6):a}
+function ordinal(n){const t=n%100,u=n%10;return n+((t>=11&&t<=13)?'th':u===1?'st':u===2?'nd':u===3?'rd':'th')}
 async function tick(){
  try{
   const s=await (await fetch('/api/state')).json();
   const app=document.getElementById('app');
   if(s.error){app.textContent=s.error;return;}
   const kang = s.method==='kangaroo';
-  const rateLabel = kang?'group ops / sec':'keys tested / sec';
+  const rateLabel = kang?'group ops / sec':'keys / sec';
   const triedLabel = kang?'group ops done':'keys tested';
-  const col = COLORS[s.status]||'var(--gray)';
+  const col = COLORS[s.status]||'var(--muted)';
   let statusText = s.status;
-  if(s.status==='found') statusText='KEY FOUND — move funds now';
-  if(s.status==='stopped-empty') statusText='balance 0 — solved/withdrawn';
+  if(s.status==='found') statusText='KEY FOUND';
+  if(s.status==='stopped-empty') statusText='balance 0';
   const lit=new Set(s.lit_cells||[]);
   let cells='';for(let i=0;i<%CELLS%;i++){cells+='<div class="cell'+(lit.has(i)?' lit':'')+'"></div>';}
+  const far = s.voyage_sailed
+   ? '<div class="v xl">sailed '+esc(s.voyage_sailed)+'</div>'+
+     '<div class="cap">of the ~150-million-km trip from Earth to the Sun, if the whole keyspace were that far</div>'+
+     '<div class="cap">1 part in '+esc(s.one_in_words)+' of all keys &mdash; the more you search, the smaller that gets</div>'
+   : '<div class="v xl">just cast off</div><div class="cap">the first keys are being tested&hellip;</div>';
   app.innerHTML =
-   '<div class="stats">'+
-   '<div class="card"><div class="k">puzzle</div><div class="v">#'+s.puzzle+' &middot; '+s.type+'</div></div>'+
-   '<div class="card"><div class="k">target</div><div class="v small"><a href="https://mempool.space/address/'+s.address+'" target="_blank">'+s.address+'</a></div></div>'+
-   '<div class="card"><div class="k">balance (live, hourly)</div><div class="v">'+(s.last_balance?(s.last_balance.sat/1e8).toFixed(4)+' BTC':'checking…')+'</div></div>'+
-   '<div class="card status" style="border-color:'+col+'"><div class="k">status</div><div class="v" style="color:'+col+'">'+statusText+'</div></div>'+
+   '<div class="hero">'+
+    '<div class="card status" style="border-color:'+col+'"><div class="k">status</div>'+
+     '<div class="v xl" style="color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+statusText+'</div>'+
+     '<div class="cap">'+s.workers+' worker'+(s.workers==1?'':'s')+' &middot; '+fmt(Math.round(s.rate_per_sec||0))+' '+rateLabel+'</div></div>'+
+    '<div class="card"><div class="k">how far you are</div>'+far+'</div>'+
+    '<div class="card"><div class="k">total keyspace</div>'+
+     '<div class="pow">2<sup>'+s.keyspace_pow+'</sup></div>'+
+     '<div class="cap">two to the '+ordinal(s.keyspace_pow)+' power</div>'+
+     '<div class="cap">'+s.keyspace_full+' keys</div></div>'+
+   '</div>'+
+   '<div class="bar">'+
+   '<div class="card"><div class="k">puzzle</div><div class="v">#'+s.puzzle+'</div><div class="cap">'+esc(s.type)+'</div></div>'+
+   '<div class="card"><div class="k">target</div><div class="v small"><a href="https://mempool.space/address/'+esc(s.address)+'" target="_blank" rel="noopener">'+esc(shortAddr(s.address))+'</a></div><div class="cap">live balance ↗</div></div>'+
+   '<div class="card"><div class="k">balance</div><div class="v">'+(s.last_balance?(s.last_balance.sat/1e8).toFixed(4)+' BTC':'checking…')+'</div><div class="cap">hourly, on-chain</div></div>'+
    '<div class="card"><div class="k">'+triedLabel+'</div><div class="v">'+fmt(s.keys_tried)+'</div></div>'+
    '<div class="card"><div class="k">'+rateLabel+'</div><div class="v">'+fmt(Math.round(s.rate_per_sec||0))+'</div></div>'+
-   '<div class="card"><div class="k">total keyspace (2^'+s.keyspace_pow+')</div><div class="v small">'+s.keyspace_full+'</div></div>'+
-   '<div class="card"><div class="k">how far you are</div><div class="v small">'+(s.one_in_words?('you have searched 1 in '+s.one_in_words+' of all keys<br>'+s.voyage_line):'—')+'</div></div>'+
-   '<div class="card"><div class="k">workers</div><div class="v">'+s.workers+' (intensity '+s.intensity+')</div></div>'+
+   '<div class="card"><div class="k">cpu workers</div><div class="v">'+s.workers+'</div><div class="cap">of '+s.cores+' cores &middot; intensity '+s.intensity+'/10</div></div>'+
    '</div>'+
-   '<div class="grid">'+cells+'</div>';
+   '<div class="card mapwrap"><div class="maphd"><div class="k">keyspace map</div><div class="cap">'+lit.size+' of '+%CELLS%+' cells lit &middot; the dark is the point</div></div>'+
+   '<div class="grid">'+cells+'</div></div>';
  }catch(e){}
 }
 tick();setInterval(tick,1000);
-</script></body></html>""".replace("%COLS%", str(GRID_COLS)).replace("%CELLS%", str(GRID_CELLS)).replace("%BG%", _BG_B64)
+</script></body></html>""".replace("%COLS%", str(GRID_COLS)).replace("%ROWS%", str(GRID_ROWS)).replace("%CELLS%", str(GRID_CELLS)).replace("%BG%", _BG_B64)
 
 
 def _lit_cells(st: dict) -> list[int]:
-    """Recompute each worker's current start point and map it to a grid cell.
+    """Recompute each RUNNING worker's current start point and map it to a cell.
 
     The seed_hash IS the seed (sha256 of the sentence), so we can reproduce the
-    start points from the state file alone. (Only meaningful for brute force,
-    which tracks worker_counters; Kangaroo has none and shows an empty grid.)
+    start points from the state file alone. Only the workers actually running
+    this session are lit: worker_counters may also hold preserved counters for
+    workers from a larger past run (kept so raising the count resumes them), and
+    those are not moving, so lighting them would misrepresent the live hunt.
+    (Only meaningful for brute force; Kangaroo tracks no counters, empty grid.)
     """
     try:
         seed = bytes.fromhex(st["seed_hash"])
         lo = st["keyspace_lo"]
         size = st["keyspace_hi"] - lo
+        counters = st.get("worker_counters", [])
+        active = int(st.get("workers") or len(counters))
         cells = set()
-        for w, counter in enumerate(st.get("worker_counters", [])):
+        for w, counter in enumerate(counters[:active]):
             w_seed = seedmod.derive_worker_seed(seed, w)
             sp = seedmod.start_point(w_seed, max(0, counter - 1), lo, size)
             cell = int((sp - lo) * GRID_CELLS // size)
@@ -131,25 +186,27 @@ def _one_in_words(n: int) -> str:
     return f"a {len(str(n))}-digit number"
 
 
-def _voyage_line(fraction: float) -> str:
-    """Map searched fraction onto an Earth→Sun voyage and say how far you got."""
+def _voyage_dist(fraction: float) -> str:
+    """How far along an Earth→Sun voyage the searched fraction takes you.
+
+    Returns just the distance phrase (e.g. '1.7 cm', '0.31 µm · thinner than a
+    hair'); the page frames it. This number GROWS as you search, unlike the
+    coverage ratio which shrinks, so it reads as forward progress.
+    """
     m = EARTH_SUN_M * fraction
     if m >= 1000:
-        dist = f"{m / 1000:,.1f} km"
-    elif m >= 1:
-        dist = f"{m:,.1f} m"
-    elif m >= 0.01:
-        dist = f"{m * 100:.1f} cm"
-    elif m >= 1e-3:
-        dist = f"{m * 1000:.2f} mm"
-    elif m >= 1e-6:
-        dist = f"{m * 1e6:.2f} µm (thinner than a hair)"
-    elif m >= 1e-10:
-        dist = f"{m * 1e9:.2f} nm (a few atoms)"
-    else:
-        return ("if the keyspace were the distance from Earth to the Sun, "
-                "you have not yet sailed the width of a single atom")
-    return f"if the keyspace were the distance from Earth to the Sun, you have sailed {dist}"
+        return f"{m / 1000:,.1f} km"
+    if m >= 1:
+        return f"{m:,.1f} m"
+    if m >= 0.01:
+        return f"{m * 100:.1f} cm"
+    if m >= 1e-3:
+        return f"{m * 1000:.2f} mm"
+    if m >= 1e-6:
+        return f"{m * 1e6:.2f} µm · thinner than a hair"
+    if m >= 1e-10:
+        return f"{m * 1e9:.2f} nm · a few atoms across"
+    return "not yet a single atom's width"
 
 
 def _augment(st: dict) -> dict:
@@ -163,12 +220,13 @@ def _augment(st: dict) -> dict:
     # full number agree (the search WIDTH, not the upper bound 2^n).
     st["keyspace_pow"] = (size.bit_length() - 1) if size else 0
     st["keyspace_full"] = f"{size:,}"
-    if tried > 0:
+    st["cores"] = os.cpu_count() or st.get("workers", 1)
+    if tried > 0 and size > 0:
         st["one_in_words"] = _one_in_words(size // tried)
-        st["voyage_line"] = _voyage_line(tried / size)
+        st["voyage_sailed"] = _voyage_dist(tried / size)
     else:
         st["one_in_words"] = None
-        st["voyage_line"] = None
+        st["voyage_sailed"] = None
     st["lit_cells"] = _lit_cells(st)
     return st
 

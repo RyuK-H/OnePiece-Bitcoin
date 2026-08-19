@@ -42,4 +42,4 @@ This project's ethic is to never lie about the odds, so it hides no risk.
 
 ## So why do it
 
-For the same reason a solo miner still dreams every ten minutes against million-year odds. This is not about the money. It is the emotional reward of hope and challenge. OnePiece Bitcoin makes that hope local, honest, and visible. Just as Gol D. Roger declared the One Piece is real before anyone had found it, the treasure exists. All that's left is whether you find it.
+For the same reason a solo miner still dreams every ten minutes against million-year odds. This is not about the money. It is the emotional reward of hope and challenge. OnePiece Bitcoin makes that hope local, honest, and visible. Just as Gol D. declared the One Piece is real before anyone had found it, the treasure exists. All that's left is whether you find it.
