@@ -1,0 +1,755 @@
+{
+  "_comment": "All UNSOLVED Bitcoin Puzzle targets. Puzzle number = key bit-length; the private key for #N lies in [2^(N-1), 2^N). Source list: roadhero/Bitcoin-Puzzle-Info (N->address, public keys). Every entry was independently re-verified on-chain on 2026-08-20 via blockstream.info: balance_btc was nonzero (unsolved), and 'type' is confirmed by whether the address has ever been spent from (a spend reveals the public key). Solved puzzles are excluded. Only add/keep an address after confirming a nonzero live balance (see CONTRIBUTING.md).",
+  "balance_verified_at": "2026-08-20",
+  "counts": {
+    "total_puzzles": 160,
+    "solved": 83,
+    "unsolved": 77,
+    "unclaimed_btc": 903.01667813
+  },
+  "notable_solved": [
+    {
+      "n": 75,
+      "address": "1J36UjUByGroXcCvmj13U6uwaVv9caEeAt"
+    },
+    {
+      "n": 135,
+      "address": "16RGFo6hjq9ym6Pj7N5H7L1NR1rVPJyw2v"
+    }
+  ],
+  "explorer": {
+    "address_url": "https://mempool.space/address/{address}",
+    "alt_address_url": "https://blockchair.com/bitcoin/address/{address}"
+  },
+  "balance_apis": [
+    {
+      "name": "mempool.space",
+      "priority": 1,
+      "url": "https://mempool.space/api/address/{address}",
+      "balance_sats": "chain_stats.funded_txo_sum - chain_stats.spent_txo_sum",
+      "auth": "none",
+      "self_hostable": true
+    },
+    {
+      "name": "blockstream.info",
+      "priority": 2,
+      "url": "https://blockstream.info/api/address/{address}",
+      "balance_sats": "chain_stats.funded_txo_sum - chain_stats.spent_txo_sum",
+      "auth": "none",
+      "note": "Same Esplora schema as mempool.space, so it is a drop-in fallback."
+    },
+    {
+      "name": "blockchain.info",
+      "priority": 3,
+      "url": "https://blockchain.info/balance?active={address}&cors=true",
+      "balance_sats": "result[address].final_balance",
+      "auth": "none",
+      "note": "Different schema (final_balance in satoshis). Last-resort fallback."
+    }
+  ],
+  "network_policy": {
+    "balance_check_interval_seconds": 3600,
+    "note": "Try balance_apis in priority order and fall through on error or timeout. The interval may only be lengthened (enforced minimum). Point the primary at your own mempool/Electrum node for zero external calls.",
+    "apis_tested": "All three endpoints returned a correct balance without an API key on 2026-08-20; blockchair is kept as a human explorer link only, since its API returned empty here."
+  },
+  "puzzles": [
+    {
+      "n": 71,
+      "type": "address-only",
+      "keyspace": "[2^70, 2^71)",
+      "address": "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
+      "balance_btc": 7.10182686,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 72,
+      "type": "address-only",
+      "keyspace": "[2^71, 2^72)",
+      "address": "1JTK7s9YVYywfm5XUH7RNhHJH1LshCaRFR",
+      "balance_btc": 7.20014379,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 73,
+      "type": "address-only",
+      "keyspace": "[2^72, 2^73)",
+      "address": "12VVRNPi4SJqUTsp6FmqDqY5sGosDtysn4",
+      "balance_btc": 7.30013849,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 74,
+      "type": "address-only",
+      "keyspace": "[2^73, 2^74)",
+      "address": "1FWGcVDK3JGzCC3WtkYetULPszMaK2Jksv",
+      "balance_btc": 7.40004977,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 76,
+      "type": "address-only",
+      "keyspace": "[2^75, 2^76)",
+      "address": "1DJh2eHFYQfACPmrvpyWc8MSTYKh7w9eRF",
+      "balance_btc": 7.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 77,
+      "type": "address-only",
+      "keyspace": "[2^76, 2^77)",
+      "address": "1Bxk4CQdqL9p22JEtDfdXMsng1XacifUtE",
+      "balance_btc": 7.70002426,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 78,
+      "type": "address-only",
+      "keyspace": "[2^77, 2^78)",
+      "address": "15qF6X51huDjqTmF9BJgxXdt1xcj46Jmhb",
+      "balance_btc": 7.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 79,
+      "type": "address-only",
+      "keyspace": "[2^78, 2^79)",
+      "address": "1ARk8HWJMn8js8tQmGUJeQHjSE7KRkn2t8",
+      "balance_btc": 7.9,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 81,
+      "type": "address-only",
+      "keyspace": "[2^80, 2^81)",
+      "address": "15qsCm78whspNQFydGJQk5rexzxTQopnHZ",
+      "balance_btc": 8.100015,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 82,
+      "type": "address-only",
+      "keyspace": "[2^81, 2^82)",
+      "address": "13zYrYhhJxp6Ui1VV7pqa5WDhNWM45ARAC",
+      "balance_btc": 8.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 83,
+      "type": "address-only",
+      "keyspace": "[2^82, 2^83)",
+      "address": "14MdEb4eFcT3MVG5sPFG4jGLuHJSnt1Dk2",
+      "balance_btc": 8.30002046,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 84,
+      "type": "address-only",
+      "keyspace": "[2^83, 2^84)",
+      "address": "1CMq3SvFcVEcpLMuuH8PUcNiqsK1oicG2D",
+      "balance_btc": 8.400015,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 86,
+      "type": "address-only",
+      "keyspace": "[2^85, 2^86)",
+      "address": "1K3x5L6G57Y494fDqBfrojD28UJv4s5JcK",
+      "balance_btc": 8.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 87,
+      "type": "address-only",
+      "keyspace": "[2^86, 2^87)",
+      "address": "1PxH3K1Shdjb7gSEoTX7UPDZ6SH4qGPrvq",
+      "balance_btc": 8.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 88,
+      "type": "address-only",
+      "keyspace": "[2^87, 2^88)",
+      "address": "16AbnZjZZipwHMkYKBSfswGWKDmXHjEpSf",
+      "balance_btc": 8.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 89,
+      "type": "address-only",
+      "keyspace": "[2^88, 2^89)",
+      "address": "19QciEHbGVNY4hrhfKXmcBBCrJSBZ6TaVt",
+      "balance_btc": 8.9,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 91,
+      "type": "address-only",
+      "keyspace": "[2^90, 2^91)",
+      "address": "1EzVHtmbN4fs4MiNk3ppEnKKhsmXYJ4s74",
+      "balance_btc": 9.1,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 92,
+      "type": "address-only",
+      "keyspace": "[2^91, 2^92)",
+      "address": "1AE8NzzgKE7Yhz7BWtAcAAxiFMbPo82NB5",
+      "balance_btc": 9.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 93,
+      "type": "address-only",
+      "keyspace": "[2^92, 2^93)",
+      "address": "17Q7tuG2JwFFU9rXVj3uZqRtioH3mx2Jad",
+      "balance_btc": 9.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 94,
+      "type": "address-only",
+      "keyspace": "[2^93, 2^94)",
+      "address": "1K6xGMUbs6ZTXBnhw1pippqwK6wjBWtNpL",
+      "balance_btc": 9.4,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 96,
+      "type": "address-only",
+      "keyspace": "[2^95, 2^96)",
+      "address": "15ANYzzCp5BFHcCnVFzXqyibpzgPLWaD8b",
+      "balance_btc": 9.600006,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 97,
+      "type": "address-only",
+      "keyspace": "[2^96, 2^97)",
+      "address": "18ywPwj39nGjqBrQJSzZVq2izR12MDpDr8",
+      "balance_btc": 9.70002613,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 98,
+      "type": "address-only",
+      "keyspace": "[2^97, 2^98)",
+      "address": "1CaBVPrwUxbQYYswu32w7Mj4HR4maNoJSX",
+      "balance_btc": 9.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 99,
+      "type": "address-only",
+      "keyspace": "[2^98, 2^99)",
+      "address": "1JWnE6p6UN7ZJBN7TtcbNDoRcjFtuDWoNL",
+      "balance_btc": 9.91257338,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 101,
+      "type": "address-only",
+      "keyspace": "[2^100, 2^101)",
+      "address": "1CKCVdbDJasYmhswB6HKZHEAnNaDpK7W4n",
+      "balance_btc": 10.1,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 102,
+      "type": "address-only",
+      "keyspace": "[2^101, 2^102)",
+      "address": "1PXv28YxmYMaB8zxrKeZBW8dt2HK7RkRPX",
+      "balance_btc": 10.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 103,
+      "type": "address-only",
+      "keyspace": "[2^102, 2^103)",
+      "address": "1AcAmB6jmtU6AiEcXkmiNE9TNVPsj9DULf",
+      "balance_btc": 10.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 104,
+      "type": "address-only",
+      "keyspace": "[2^103, 2^104)",
+      "address": "1EQJvpsmhazYCcKX5Au6AZmZKRnzarMVZu",
+      "balance_btc": 10.400016,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 106,
+      "type": "address-only",
+      "keyspace": "[2^105, 2^106)",
+      "address": "18KsfuHuzQaBTNLASyj15hy4LuqPUo1FNB",
+      "balance_btc": 10.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 107,
+      "type": "address-only",
+      "keyspace": "[2^106, 2^107)",
+      "address": "15EJFC5ZTs9nhsdvSUeBXjLAuYq3SWaxTc",
+      "balance_btc": 10.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 108,
+      "type": "address-only",
+      "keyspace": "[2^107, 2^108)",
+      "address": "1HB1iKUqeffnVsvQsbpC6dNi1XKbyNuqao",
+      "balance_btc": 10.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 109,
+      "type": "address-only",
+      "keyspace": "[2^108, 2^109)",
+      "address": "1GvgAXVCbA8FBjXfWiAms4ytFeJcKsoyhL",
+      "balance_btc": 10.900105,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 111,
+      "type": "address-only",
+      "keyspace": "[2^110, 2^111)",
+      "address": "1824ZJQ7nKJ9QFTRBqn7z7dHV5EGpzUpH3",
+      "balance_btc": 11.1001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 112,
+      "type": "address-only",
+      "keyspace": "[2^111, 2^112)",
+      "address": "18A7NA9FTsnJxWgkoFfPAFbQzuQxpRtCos",
+      "balance_btc": 11.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 113,
+      "type": "address-only",
+      "keyspace": "[2^112, 2^113)",
+      "address": "1NeGn21dUDDeqFQ63xb2SpgUuXuBLA4WT4",
+      "balance_btc": 11.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 114,
+      "type": "address-only",
+      "keyspace": "[2^113, 2^114)",
+      "address": "174SNxfqpdMGYy5YQcfLbSTK3MRNZEePoy",
+      "balance_btc": 11.4,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 116,
+      "type": "address-only",
+      "keyspace": "[2^115, 2^116)",
+      "address": "1MnJ6hdhvK37VLmqcdEwqC3iFxyWH2PHUV",
+      "balance_btc": 11.6000121,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 117,
+      "type": "address-only",
+      "keyspace": "[2^116, 2^117)",
+      "address": "1KNRfGWw7Q9Rmwsc6NT5zsdvEb9M2Wkj5Z",
+      "balance_btc": 11.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 118,
+      "type": "address-only",
+      "keyspace": "[2^117, 2^118)",
+      "address": "1PJZPzvGX19a7twf5HyD2VvNiPdHLzm9F6",
+      "balance_btc": 11.80000661,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 119,
+      "type": "address-only",
+      "keyspace": "[2^118, 2^119)",
+      "address": "1GuBBhf61rnvRe4K8zu8vdQB3kHzwFqSy7",
+      "balance_btc": 11.9,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 121,
+      "type": "address-only",
+      "keyspace": "[2^120, 2^121)",
+      "address": "1GDSuiThEV64c166LUFC9uDcVdGjqkxKyh",
+      "balance_btc": 12.1,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 122,
+      "type": "address-only",
+      "keyspace": "[2^121, 2^122)",
+      "address": "1Me3ASYt5JCTAK2XaC32RMeH34PdprrfDx",
+      "balance_btc": 12.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 123,
+      "type": "address-only",
+      "keyspace": "[2^122, 2^123)",
+      "address": "1CdufMQL892A69KXgv6UNBD17ywWqYpKut",
+      "balance_btc": 12.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 124,
+      "type": "address-only",
+      "keyspace": "[2^123, 2^124)",
+      "address": "1BkkGsX9ZM6iwL3zbqs7HWBV7SvosR6m8N",
+      "balance_btc": 12.4,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 126,
+      "type": "address-only",
+      "keyspace": "[2^125, 2^126)",
+      "address": "1AWCLZAjKbV1P7AHvaPNCKiB7ZWVDMxFiz",
+      "balance_btc": 12.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 127,
+      "type": "address-only",
+      "keyspace": "[2^126, 2^127)",
+      "address": "1G6EFyBRU86sThN3SSt3GrHu1sA7w7nzi4",
+      "balance_btc": 12.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 128,
+      "type": "address-only",
+      "keyspace": "[2^127, 2^128)",
+      "address": "1MZ2L1gFrCtkkn6DnTT2e4PFUTHw9gNwaj",
+      "balance_btc": 12.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 129,
+      "type": "address-only",
+      "keyspace": "[2^128, 2^129)",
+      "address": "1Hz3uv3nNZzBVMXLGadCucgjiCs5W9vaGz",
+      "balance_btc": 12.9,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 131,
+      "type": "address-only",
+      "keyspace": "[2^130, 2^131)",
+      "address": "16zRPnT8znwq42q7XeMkZUhb1bKqgRogyy",
+      "balance_btc": 13.1,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 132,
+      "type": "address-only",
+      "keyspace": "[2^131, 2^132)",
+      "address": "1KrU4dHE5WrW8rhWDsTRjR21r8t3dsrS3R",
+      "balance_btc": 13.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 133,
+      "type": "address-only",
+      "keyspace": "[2^132, 2^133)",
+      "address": "17uDfp5r4n441xkgLFmhNoSW1KWp6xVLD",
+      "balance_btc": 13.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 134,
+      "type": "address-only",
+      "keyspace": "[2^133, 2^134)",
+      "address": "13A3JrvXmvg5w9XGvyyR4JEJqiLz8ZySY3",
+      "balance_btc": 13.4,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 136,
+      "type": "address-only",
+      "keyspace": "[2^135, 2^136)",
+      "address": "1UDHPdovvR985NrWSkdWQDEQ1xuRiTALq",
+      "balance_btc": 13.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 137,
+      "type": "address-only",
+      "keyspace": "[2^136, 2^137)",
+      "address": "15nf31J46iLuK1ZkTnqHo7WgN5cARFK3RA",
+      "balance_btc": 13.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 138,
+      "type": "address-only",
+      "keyspace": "[2^137, 2^138)",
+      "address": "1Ab4vzG6wEQBDNQM1B2bvUz4fqXXdFk2WT",
+      "balance_btc": 13.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 139,
+      "type": "address-only",
+      "keyspace": "[2^138, 2^139)",
+      "address": "1Fz63c775VV9fNyj25d9Xfw3YHE6sKCxbt",
+      "balance_btc": 13.9,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 140,
+      "type": "pubkey-exposed",
+      "keyspace": "[2^139, 2^140)",
+      "address": "1QKBaU6WAeycb3DbKbLBkX7vJiaS8r42Xo",
+      "balance_btc": 14.000016,
+      "public_key": "031f6a332d3c5c4f2de2378c012f429cd109ba07d69690c6c701b6bb87860d6640",
+      "status": "unsolved",
+      "algorithm_hint": "Pollard's Kangaroo"
+    },
+    {
+      "n": 141,
+      "type": "address-only",
+      "keyspace": "[2^140, 2^141)",
+      "address": "1CD91Vm97mLQvXhrnoMChhJx4TP9MaQkJo",
+      "balance_btc": 14.10014846,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 142,
+      "type": "address-only",
+      "keyspace": "[2^141, 2^142)",
+      "address": "15MnK2jXPqTMURX4xC3h4mAZxyCcaWWEDD",
+      "balance_btc": 14.2,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 143,
+      "type": "address-only",
+      "keyspace": "[2^142, 2^143)",
+      "address": "13N66gCzWWHEZBxhVxG18P8wyjEWF9Yoi1",
+      "balance_btc": 14.3,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 144,
+      "type": "address-only",
+      "keyspace": "[2^143, 2^144)",
+      "address": "1NevxKDYuDcCh1ZMMi6ftmWwGrZKC6j7Ux",
+      "balance_btc": 14.4,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 145,
+      "type": "pubkey-exposed",
+      "keyspace": "[2^144, 2^145)",
+      "address": "19GpszRNUej5yYqxXoLnbZWKew3KdVLkXg",
+      "balance_btc": 14.500006,
+      "public_key": "03afdda497369e219a2c1c369954a930e4d3740968e5e4352475bcffce3140dae5",
+      "status": "unsolved",
+      "algorithm_hint": "Pollard's Kangaroo"
+    },
+    {
+      "n": 146,
+      "type": "address-only",
+      "keyspace": "[2^145, 2^146)",
+      "address": "1M7ipcdYHey2Y5RZM34MBbpugghmjaV89P",
+      "balance_btc": 14.6,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 147,
+      "type": "address-only",
+      "keyspace": "[2^146, 2^147)",
+      "address": "18aNhurEAJsw6BAgtANpexk5ob1aGTwSeL",
+      "balance_btc": 14.7,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 148,
+      "type": "address-only",
+      "keyspace": "[2^147, 2^148)",
+      "address": "1FwZXt6EpRT7Fkndzv6K4b4DFoT4trbMrV",
+      "balance_btc": 14.8,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 149,
+      "type": "address-only",
+      "keyspace": "[2^148, 2^149)",
+      "address": "1CXvTzR6qv8wJ7eprzUKeWxyGcHwDYP1i2",
+      "balance_btc": 14.90001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 150,
+      "type": "pubkey-exposed",
+      "keyspace": "[2^149, 2^150)",
+      "address": "1MUJSJYtGPVGkBCTqGspnxyHahpt5Te8jy",
+      "balance_btc": 15.000016,
+      "public_key": "03137807790ea7dc6e97901c2bc87411f45ed74a5629315c4e4b03a0a102250c49",
+      "status": "unsolved",
+      "algorithm_hint": "Pollard's Kangaroo"
+    },
+    {
+      "n": 151,
+      "type": "address-only",
+      "keyspace": "[2^150, 2^151)",
+      "address": "13Q84TNNvgcL3HJiqQPvyBb9m4hxjS3jkV",
+      "balance_btc": 15.10001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 152,
+      "type": "address-only",
+      "keyspace": "[2^151, 2^152)",
+      "address": "1LuUHyrQr8PKSvbcY1v1PiuGuqFjWpDumN",
+      "balance_btc": 15.20001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 153,
+      "type": "address-only",
+      "keyspace": "[2^152, 2^153)",
+      "address": "18192XpzzdDi2K11QVHR7td2HcPS6Qs5vg",
+      "balance_btc": 15.30001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 154,
+      "type": "address-only",
+      "keyspace": "[2^153, 2^154)",
+      "address": "1NgVmsCCJaKLzGyKLFJfVequnFW9ZvnMLN",
+      "balance_btc": 15.40001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 155,
+      "type": "pubkey-exposed",
+      "keyspace": "[2^154, 2^155)",
+      "address": "1AoeP37TmHdFh8uN72fu9AqgtLrUwcv2wJ",
+      "balance_btc": 15.500116,
+      "public_key": "035cd1854cae45391ca4ec428cc7e6c7d9984424b954209a8eea197b9e364c05f6",
+      "status": "unsolved",
+      "algorithm_hint": "Pollard's Kangaroo"
+    },
+    {
+      "n": 156,
+      "type": "address-only",
+      "keyspace": "[2^155, 2^156)",
+      "address": "1FTpAbQa4h8trvhQXjXnmNhqdiGBd1oraE",
+      "balance_btc": 15.60001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 157,
+      "type": "address-only",
+      "keyspace": "[2^156, 2^157)",
+      "address": "14JHoRAdmJg3XR4RjMDh6Wed6ft6hzbQe9",
+      "balance_btc": 15.70001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 158,
+      "type": "address-only",
+      "keyspace": "[2^157, 2^158)",
+      "address": "19z6waranEf8CcP8FqNgdwUe1QRxvUNKBG",
+      "balance_btc": 15.80001,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 159,
+      "type": "address-only",
+      "keyspace": "[2^158, 2^159)",
+      "address": "14u4nA5sugaswb6SZgn5av2vuChdMnD9E5",
+      "balance_btc": 15.900026,
+      "public_key": null,
+      "status": "unsolved"
+    },
+    {
+      "n": 160,
+      "type": "pubkey-exposed",
+      "keyspace": "[2^159, 2^160)",
+      "address": "1NBC8uXJy1GiJ6drkiZa1WuKn51ps7EPTv",
+      "balance_btc": 16.00119082,
+      "public_key": "02e0a8b039282faf6fe0fd769cfbc4b6b4cf8758ba68220eac420e32b91ddfa673",
+      "status": "unsolved",
+      "algorithm_hint": "Pollard's Kangaroo"
+    }
+  ]
+}
