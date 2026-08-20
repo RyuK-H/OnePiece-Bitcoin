@@ -82,7 +82,9 @@ def list_hunts() -> list[dict]:
         return []
     out = []
     for name in sorted(os.listdir(HUNTS_DIR)):
-        if name.endswith(".json"):
+        # Skip per-worker Kangaroo checkpoints: they live in the same dir but
+        # are not hunt states (no "puzzle" key), so callers would crash on them.
+        if name.endswith(".json") and ".kang-w" not in name:
             d = load(os.path.join(HUNTS_DIR, name))
             if d:
                 out.append(d)

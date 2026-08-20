@@ -34,5 +34,7 @@ jobs:
         run: python tests/test_kangaroo_resume.py
       - name: kangaroo checkpoint cleanup
         run: python tests/test_kangaroo_ckpt_cleanup.py
+      - name: status lists hunts only
+        run: python tests/test_status_hunts.py
       - name: cli list runs
         run: python -m onepiece list
